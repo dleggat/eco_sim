@@ -1,0 +1,10 @@
+*cmake
+*o
+bin/
+*~
+CMakeFiles/
+CMakeCac*
+Makefile
+*#*#
+*.a
+*#*
