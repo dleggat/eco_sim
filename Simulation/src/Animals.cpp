@@ -26,7 +26,7 @@ void Animal::updateTimestep(Board * board, std::vector<Animal*> * animals){
   _state = defineState();
 
   // And run animal specific behaviour based on it
-  runBehaviour(*board);
+  runBehaviour(board);
 
   if (!_checkLife()){
     std::cout << "Animal has died!" << std::endl;
@@ -122,21 +122,41 @@ Animal* Animal::findClosestAnimal(Board board, std::string animalType,  F* valid
   return returnAnimal;
 }; //Animal::findClosestAnimal
 
+float Animal::_mutateAlliole(float first, float second){
+  float mean = (first + second) / 2.0;
+  float stddev = abs(first-second);
+  std::normal_distribution newAlliole(mean,stddev);
+  //This is clearly bad.
+  std::random_device rd;
+  std::mt19937 rand_gen(rd());
+  float returnValue;
+  do{
+    returnValue = newAlliole(rand_gen);
+  } while (returnValue < 0.);
+  return returnValue;
+  //return 1.0;
+  //do (
+};
+
 Rabbit::Rabbit():
   Animal(std::pair<int, int>(0.,0.))
 {
 };
 
 Rabbit::Rabbit(std::pair<int,int> location):
+  Rabbit(location,0.5,0.5,0.5,0.1,10)
+{
+};
+
+Rabbit::Rabbit(std::pair<int,int> location, float thirstThreshold, float energyThreshold, float hornyThreshold, float horniness, float movementInc):
   Animal(location)
   //  _location(location), _movementIncrement(10), _energyDelta(0.02)
 {
   this->_animal_print = "db";
-  this->_movementIncrement = 10;
+  this->_movementIncrement = movementInc;
   this->_forbiddenLand = {LandType::Water};
   this->_sightRange = 6;
   this->_animalName = "rabbit";
-  this->_horniness = 0.1;
   for (int i = -_sightRange; i < _sightRange + 1; i++){
     for (int j = -_sightRange; j < _sightRange + 1; j++){
       //skip outside of the sight range
@@ -145,20 +165,23 @@ Rabbit::Rabbit(std::pair<int,int> location):
       this->_sightGrid.push_back(std::pair<int,int>(i,j));
     }
   }
-
+  this->_horniness = horniness;
+  this->_thirstThreshold = thirstThreshold;
+  this->_energyThreshold = energyThreshold;
+  this->_hornyThreshold = hornyThreshold;
 };
 
-void Rabbit::runBehaviour(Board board){
+void Rabbit::runBehaviour(Board * board){
   std::pair<int,int> moveLocation;
   switch (_state){
   case AnimalState::Idle:
-    _idleBehaviour(board);
+    _idleBehaviour(*board);
     break;
   case AnimalState::Thirsty:
-    _thirstyBehaviour(board);
+    _thirstyBehaviour(*board);
     break;
   case AnimalState::Hungry:
-    _hungryBehaviour(board);
+    _hungryBehaviour(*board);
     break;
   case AnimalState::Horny:
     _hornyBehaviour(board);
@@ -170,11 +193,11 @@ void Rabbit::runBehaviour(Board board){
 
 Animal::AnimalState Rabbit::defineState(){
   // For now, let's just return idle
-  if (_thirst > 0.5) return AnimalState::Thirsty;
-  if (_energy < 0.5) return AnimalState::Hungry;
+  if (_thirst > this->_thirstThreshold) return AnimalState::Thirsty;
+  if (_energy < this->_energyThreshold) return AnimalState::Hungry;
   // If we aren't hungry or thirsty, the rabbit starts getting horny
   this->_horn+=this->_horniness;
-  if (this->_horn > 0.5) return AnimalState::Horny;
+  if (this->_horn > this->_hornyThreshold ) return AnimalState::Horny;
   return AnimalState::Idle;
 
 }; //Rabbit::_defineState
@@ -213,16 +236,39 @@ void Rabbit::_hungryBehaviour(Board board){
   }
 };
 
-void Rabbit::_hornyBehaviour(Board board){
+void Rabbit::_hornyBehaviour(Board * board){
   auto hornyLambda = [](Animal* animal){ return animal->isHorny(); };
-  Animal* closestRabbit = findClosestAnimal(board, "rabbit", &hornyLambda );
-  if (closestRabbit == NULL
-      || utils::distanceBetween(closestRabbit->getLocation(), _location) > _sightRange
-      ){
-    moveOneRandom(board,this->_forbiddenLand);
+  Animal* closestRabbit = findClosestAnimal(*board, "rabbit", &hornyLambda );
+  if (closestRabbit == NULL){
+    moveOneRandom(*board,this->_forbiddenLand);
   }
   else{
-    //    std::pair<int,int> targetLocation = findClosestAnimal->getLocation();
+    std::pair<int,int> targetLocation = closestRabbit->getLocation();
+    std::pair<int,int> moveLocation = board->plotMoveTowards(_location,targetLocation,this->_forbiddenLand);
+    moveAnimal(moveLocation);
+    if (utils::distanceBetween(_location,closestRabbit->getLocation()) < 1.1){
+      auto makeBabyRabbitLambda = [](std::pair<int,int> location, float thirstyT, float energyT, float hornyT, float horniness, float movementInc){ return new Rabbit(location,thirstyT,energyT,hornyT,horniness,movementInc); };
+      Animal::_mateAnimals(board, (Animal*)this,closestRabbit,&makeBabyRabbitLambda);
+    }
     //    moveOneRandom(board,animals,this->_forbiddenLand);
   }
 };
+
+template <typename F>
+void Animal::_mateAnimals(Board * board, Animal * animalOne, Animal * animalTwo, F* babyFunc){
+  
+  float thirstyThreshold = _mutateAlliole(animalOne->_thirstThreshold,animalTwo->_thirstThreshold);
+  float energyThreshold = _mutateAlliole(animalOne->_energyThreshold,animalTwo->_energyThreshold);
+  float horninessThreshold = _mutateAlliole(animalOne->_hornyThreshold,animalTwo->_hornyThreshold);
+  float horniness = _mutateAlliole(animalOne->_horniness,animalTwo->_horniness);
+  float movementInc = _mutateAlliole(animalOne->_movementIncrement,animalTwo->_movementIncrement);
+
+  std::pair<int,int> babyLocation = board->getRandomAdjacentTile(animalOne->getLocation(),animalOne->_forbiddenLand);
+
+  //reset animal states
+  for (auto animal: {animalOne,animalTwo}){
+    animal->_horn = 0.;
+    animal->_state = AnimalState::Idle;
+  }
+  
+}; //Rabbit::_mateRabbit
