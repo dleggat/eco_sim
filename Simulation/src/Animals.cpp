@@ -122,16 +122,16 @@ Animal* Animal::findClosestAnimal(Board board, std::string animalType,  F* valid
   return returnAnimal;
 }; //Animal::findClosestAnimal
 
-float Animal::_mutateAlliole(float first, float second){
+float Animal::_mutateAllele(float first, float second){
   float mean = (first + second) / 2.0;
   float stddev = abs(first-second);
-  std::normal_distribution newAlliole(mean,stddev);
+  std::normal_distribution newAllele(mean,stddev);
   //This is clearly bad.
   std::random_device rd;
   std::mt19937 rand_gen(rd());
   float returnValue;
   do{
-    returnValue = newAlliole(rand_gen);
+    returnValue = newAllele(rand_gen);
   } while (returnValue < 0.);
   return returnValue;
   //return 1.0;
@@ -257,11 +257,11 @@ void Rabbit::_hornyBehaviour(Board * board){
 template <typename F>
 void Animal::_mateAnimals(Board * board, Animal * animalOne, Animal * animalTwo, F* babyFunc){
   
-  float thirstyThreshold = _mutateAlliole(animalOne->_thirstThreshold,animalTwo->_thirstThreshold);
-  float energyThreshold = _mutateAlliole(animalOne->_energyThreshold,animalTwo->_energyThreshold);
-  float horninessThreshold = _mutateAlliole(animalOne->_hornyThreshold,animalTwo->_hornyThreshold);
-  float horniness = _mutateAlliole(animalOne->_horniness,animalTwo->_horniness);
-  float movementInc = _mutateAlliole(animalOne->_movementIncrement,animalTwo->_movementIncrement);
+  float thirstyThreshold = _mutateAllele(animalOne->_thirstThreshold,animalTwo->_thirstThreshold);
+  float energyThreshold = _mutateAllele(animalOne->_energyThreshold,animalTwo->_energyThreshold);
+  float horninessThreshold = _mutateAllele(animalOne->_hornyThreshold,animalTwo->_hornyThreshold);
+  float horniness = _mutateAllele(animalOne->_horniness,animalTwo->_horniness);
+  float movementInc = _mutateAllele(animalOne->_movementIncrement,animalTwo->_movementIncrement);
 
   std::pair<int,int> babyLocation = board->getRandomAdjacentTile(animalOne->getLocation(),animalOne->_forbiddenLand);
 

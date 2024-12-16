@@ -76,7 +76,7 @@ protected:
   static void _mateAnimals(Board * board, Animal * animalOne, Animal * animalTwo, F* babyFunc);
 
   // Static methods
-  static float _mutateAlliole(float first, float second);
+  static float _mutateAllele(float first, float second);
 private:
   bool _checkLife();
 
