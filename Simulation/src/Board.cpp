@@ -5,12 +5,10 @@ Board::Board(size_t size_x, size_t size_y):
   _size_x(size_x), _size_y(size_y)
 {
 
-  // Assign the land tiles
-  landTiles = (LandType*)malloc(sizeof(LandType) * _size_x * _size_y);
-
   //Initialise all to ground
   for (int i = 0; i < _size_x * _size_y; i++){
-    landTiles[i] = LandType::Ground;
+    landTiles.push_back(LandType::Ground);
+    animalTiles.push_back(NULL);
   }
 
   // Initialise random generators
@@ -48,6 +46,7 @@ bool Board::isLegal(std::pair<int,int> location,std::vector<LandType> forbidden)
   return (_coordInBounds(location)
 	  && std::find(forbidden.begin(), forbidden.end(), getTileTypeAt(location.first, location.second))
 	  == forbidden.end()
+	  && !getAnimalAt(location)
 	  );
 };
 
@@ -176,9 +175,9 @@ std::pair<int, int> Board::getFreeTile(std::vector<Animal*> animals){
   return location;
 }; //getFreeTile                                                                 
 
-std::pair<int,int> Board::plotMoveTowards(std::pair<int,int> start, std::pair<int,int> end, std::vector<Animal*> animals, std::vector<LandType> forbidden){
+std::pair<int,int> Board::plotMoveTowards(std::pair<int,int> start, std::pair<int,int> end, std::vector<LandType> forbidden){
   if (start == end) return start;
-  std::vector<std::pair<int,int>> legalMoves = getLegalMovesWithAnimals(start,forbidden,animals);
+  std::vector<std::pair<int,int>> legalMoves = getLegalMoves(start,forbidden);
   std::pair<int,int> vectorDirection = std::pair<int,int>(end.first - start.first, end.second - start.second);
   // If there are no legal moves, stay still
   if (legalMoves.size() == 0) return start;

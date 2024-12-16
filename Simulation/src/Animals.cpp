@@ -11,7 +11,7 @@ Animal::Animal(std::pair<int,int> location):
 {
 };
 
-void Animal::updateTimestep(Board board, std::vector<Animal*> * animals){
+void Animal::updateTimestep(Board * board, std::vector<Animal*> * animals){
   // Update thirst tracker always
   this->_thirst += _thirstDelta;
 
@@ -19,16 +19,24 @@ void Animal::updateTimestep(Board board, std::vector<Animal*> * animals){
   if (++_internalCounter % _movementIncrement != 0) return;
 
   _internalCounter = 0;
+
+  // Remove animal from board whilst we do its behaviour
+  board->removeAnimalFrom(getLocation());
   
   _state = defineState();
 
   // And run animal specific behaviour based on it
-  runBehaviour(board, *animals);
+  runBehaviour(*board, *animals);
 
   if (!_checkLife()){
     std::cout << "Animal has died!" << std::endl;
     animals->erase(std::remove(animals->begin(),animals->end(), this), animals->end());
   }
+  else {
+    board->placeAnimalAt(getLocation(),this);
+  }
+
+  
   
 }; //Animal::udpateTimestep
 
@@ -45,15 +53,15 @@ bool Animal::_checkLife(){
   return isAlive;
 };
 
-bool Animal::existsLegalMoves(Board board, std::vector<Animal*> animals){
-  std::vector<std::pair<int,int>> possibleMoves = board.getLegalMovesWithAnimals(_location,_forbiddenLand,animals);
+bool Animal::existsLegalMoves(Board board){
+  std::vector<std::pair<int,int>> possibleMoves = board.getLegalMoves(_location,_forbiddenLand);
   if (possibleMoves.size() == 0) return false;
   return true;
 };
 
 void Animal::moveOneRandom(Board board, std::vector<Animal*> animals, std::vector<LandType> forbidden){
   //Check that we have a legal move, or we'll get stuck forever
-  if (!existsLegalMoves(board,animals)) return;
+  if (!existsLegalMoves(board)) return;
 
   // Now find our new location
   std::pair<int,int> newLocation;
@@ -81,7 +89,7 @@ std::pair<int,int> Animal::searchFor(Board board, LandType searchFor){
       if (!board._coordInBounds(tempLoc)) continue;
       //skip outside of the sight range
       float range = sqrt((i*i)+(j*j));
-      if (floor(range) > _sightRange)continue;
+      if (floor(range) > _sightRange) continue;
       if (board.getTileTypeAt(tempLoc.first, tempLoc.second) != searchFor) continue;
       if (range < closestRange){
 	closestLocation = tempLoc;
@@ -175,7 +183,7 @@ void Rabbit::_thirstyBehaviour(Board board, std::vector<Animal*> animals){
     moveOneRandom(board,animals,this->_forbiddenLand);
   }
   else{
-    std::pair<int,int> moveLocation = board.plotMoveTowards(_location,nearestWater,animals,this->_forbiddenLand);
+    std::pair<int,int> moveLocation = board.plotMoveTowards(_location,nearestWater,this->_forbiddenLand);
     moveAnimal(moveLocation);
   }
   if (board.adjacentContains(_location,{LandType::Water})){
@@ -190,7 +198,7 @@ void Rabbit::_hungryBehaviour(Board board, std::vector<Animal*> animals){
     moveOneRandom(board,animals,this->_forbiddenLand);
   }
   else{
-    std::pair<int,int> moveLocation = board.plotMoveTowards(_location,nearestFood,animals,this->_forbiddenLand);
+    std::pair<int,int> moveLocation = board.plotMoveTowards(_location,nearestFood,this->_forbiddenLand);
     moveAnimal(moveLocation);
   }
   if (board.adjacentContains(_location,{LandType::Food})){

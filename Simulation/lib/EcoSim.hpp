@@ -10,7 +10,7 @@ class EcoSim{
 public:
   EcoSim(Board board);
   ~EcoSim() {};
-  void setAnimals(std::vector<Animal*> *animals) {_animals = *animals;};
+  void setAnimals(std::vector<Animal*> *animals);
   void runSimulation(int timeSteps);
   void printState();
 private:

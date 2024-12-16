@@ -19,7 +19,7 @@ public:
   int getY() { return _location.second; };
   std::string getAnimalName() { return _animalName; };
   std::string printAnimal() { return _animal_print; };
-  void updateTimestep(Board board, std::vector<Animal*> * animals);
+  void updateTimestep(Board * board, std::vector<Animal*> * animals);
   bool isHorny() {return this->_state == AnimalState::Horny;};
   
   enum struct AnimalState{
@@ -56,7 +56,7 @@ protected:
   virtual void runBehaviour(Board board, std::vector<Animal*> animals) = 0;
 
   // Movement methods
-  bool existsLegalMoves(Board board, std::vector<Animal*> animals);
+  bool existsLegalMoves(Board board);
   void moveOneRandom(Board board, std::vector<Animal*> animals, std::vector<LandType> forbidden);
   void moveAnimal(std::pair<int,int> newLocation);
 

@@ -24,6 +24,7 @@ public:
 
   void updateBoardTimestep();
   LandType getTileTypeAt(std::size_t x, std::size_t y) { return landTiles[x * _size_x + y]; };
+  LandType getTileTypeAt(std::pair<int,int> location) { return landTiles[location.first * _size_x + location.second]; };
   void printBoard();
   void populateLandTypes(LandType type, int nTiles);
   void addPond(int nTiles);
@@ -35,13 +36,18 @@ public:
   std::pair<int, int> getRandomAdjacentTile(std::pair<int,int> location,std::vector<LandType> forbidden);
   std::pair<int, int> getFreeTile(std::vector<Animal*> animals);
   // Get moves towards things
-  std::pair<int,int> plotMoveTowards(std::pair<int,int> start, std::pair<int,int> end, std::vector<Animal*> animals, std::vector<LandType> forbidden);
+  std::pair<int,int> plotMoveTowards(std::pair<int,int> start, std::pair<int,int> end, std::vector<LandType> forbidden);
   int sizeX() {return _size_x;};
   int sizeY() {return _size_y;};
   bool adjacentContains(std::pair<int,int> location, std::vector<LandType> types);
   bool _coordInBounds(std::pair<int,int> coord);
+  // Place and remove animal from tiles
+  void placeAnimalAt(std::pair<int,int> location, Animal* animal) {animalTiles[location.first * _size_x + location.second] = animal;};
+  void removeAnimalFrom(std::pair<int,int> location) {animalTiles[location.first * _size_x + location.second] = NULL;};
+  Animal* getAnimalAt(std::pair<int,int> location) { return animalTiles[location.first * _size_x + location.second]; };
 private:
-  LandType* landTiles;
+  std::vector<LandType> landTiles;
+  std::vector<Animal*> animalTiles;
   int _size_x, _size_y;
   std::mt19937 rand_gen;
   
