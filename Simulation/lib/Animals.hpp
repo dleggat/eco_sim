@@ -45,6 +45,7 @@ protected:
   float _horniness;
   //Properties that we could potentially evolve
   int _sightRange;
+  std::vector<std::pair<int,int>> _sightGrid;
   // For monitoring board
   std::string _animal_print;
   std::string _animalName;

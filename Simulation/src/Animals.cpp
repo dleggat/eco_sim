@@ -83,18 +83,14 @@ std::pair<int,int> Animal::searchFor(Board board, LandType searchFor){
   float closestRange = 10000000.;
   std::pair<int,int> closestLocation;
   std::pair<int,int> tempLoc;
-  for (int i = -_sightRange; i < _sightRange + 1; i++){
-    for (int j = -_sightRange; j < _sightRange + 1; j++){
-      tempLoc = std::pair<int,int>(_location.first+i, _location.second+j);
-      if (!board._coordInBounds(tempLoc)) continue;
-      //skip outside of the sight range
-      float range = sqrt((i*i)+(j*j));
-      if (floor(range) > _sightRange) continue;
-      if (board.getTileTypeAt(tempLoc.first, tempLoc.second) != searchFor) continue;
-      if (range < closestRange){
-	closestLocation = tempLoc;
-	closestRange = range;
-      }
+  for (auto & sightSpot: _sightGrid){
+    tempLoc = std::pair<int,int>(_location.first+sightSpot.first, _location.second+sightSpot.second);
+    if (!board._coordInBounds(tempLoc)) continue;
+    if (board.getTileTypeAt(tempLoc.first, tempLoc.second) != searchFor) continue;
+    float range = utils::distanceBetween(_location,tempLoc);
+    if (range < closestRange){
+      closestLocation = tempLoc;
+      closestRange = range;
     }
   }
   if (closestRange < 1000000){
@@ -139,6 +135,15 @@ Rabbit::Rabbit(std::pair<int,int> location):
   this->_sightRange = 6;
   this->_animalName = "rabbit";
   this->_horniness = 0.1;
+  for (int i = -_sightRange; i < _sightRange + 1; i++){
+    for (int j = -_sightRange; j < _sightRange + 1; j++){
+      //skip outside of the sight range
+      float range = sqrt((i*i)+(j*j));
+      if (floor(range) > _sightRange) continue;
+      this->_sightGrid.push_back(std::pair<int,int>(i,j));
+    }
+  }
+
 };
 
 void Rabbit::runBehaviour(Board board, std::vector<Animal*> animals){

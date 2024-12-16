@@ -44,15 +44,6 @@ void EcoSim::printState(){
     }
     std::cout << std::endl;
   }
-  for (int i = 0; i < _board.sizeX(); i++){
-    for (int j = 0; j < _board.sizeY(); j++){
-      std::pair<int,int> boardCoord(i,j);
-      if (_board.getAnimalAt(boardCoord)){
-	std::cout << i <<"," << j << " ";
-      }
-    }
-  }
-  std::cout << std::endl;
     
 }
 
