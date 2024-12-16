@@ -26,7 +26,7 @@ void Animal::updateTimestep(Board * board, std::vector<Animal*> * animals){
   _state = defineState();
 
   // And run animal specific behaviour based on it
-  runBehaviour(*board, *animals);
+  runBehaviour(*board);
 
   if (!_checkLife()){
     std::cout << "Animal has died!" << std::endl;
@@ -59,15 +59,12 @@ bool Animal::existsLegalMoves(Board board){
   return true;
 };
 
-void Animal::moveOneRandom(Board board, std::vector<Animal*> animals, std::vector<LandType> forbidden){
+void Animal::moveOneRandom(Board board, std::vector<LandType> forbidden){
   //Check that we have a legal move, or we'll get stuck forever
   if (!existsLegalMoves(board)) return;
 
   // Now find our new location
-  std::pair<int,int> newLocation;
-  do {
-    newLocation = board.getRandomAdjacentTile(_location, forbidden);
-  } while (utils::checkAnimalCollision(newLocation,animals));
+  std::pair<int,int> newLocation = board.getRandomAdjacentTile(_location, forbidden);
   moveAnimal(newLocation);
 }; //Animal::moveOneRandom
 
@@ -101,20 +98,25 @@ std::pair<int,int> Animal::searchFor(Board board, LandType searchFor){
 }; // Animal::searchFor
 
 template <typename F>
-Animal* Animal::findClosestAnimal(std::string animalType, std::vector<Animal*> animals,  F* validityFunc){
+Animal* Animal::findClosestAnimal(Board board, std::string animalType,  F* validityFunc){
   // Basic closest neighbour search. I know there are better ways to do this, but who has
   // time to makes trees and do pruning?
   Animal* returnAnimal = NULL;
   float closestAnimal = 1000000.;
-  for (auto & animal: animals){
-    if (animal == this || animal->getAnimalName() != animalType) continue;
+  std::pair<int,int> closestLocation;
+  std::pair<int,int> tempLoc;
+  for (auto & sightSpot: _sightGrid){
+    tempLoc = std::pair<int,int>(_location.first+sightSpot.first, _location.second+sightSpot.second);
+    if (!board._coordInBounds(tempLoc)) continue;
+    Animal * tmpAnimal = board.getAnimalAt(tempLoc);
+    if (!tmpAnimal || tmpAnimal->getAnimalName() != animalType) continue;
     if (validityFunc){
-      if (!(*validityFunc)(animal)) continue;
-    }
-    float distance = utils::distanceBetween(_location,animal->getLocation());
+      if (!(*validityFunc)(tmpAnimal)) continue;
+    }    
+    float distance = utils::distanceBetween(_location,tmpAnimal->getLocation());
     if (distance < closestAnimal){
       closestAnimal = distance;
-      returnAnimal = animal;
+      returnAnimal = tmpAnimal;
     }
   }
   return returnAnimal;
@@ -146,20 +148,20 @@ Rabbit::Rabbit(std::pair<int,int> location):
 
 };
 
-void Rabbit::runBehaviour(Board board, std::vector<Animal*> animals){
+void Rabbit::runBehaviour(Board board){
   std::pair<int,int> moveLocation;
   switch (_state){
   case AnimalState::Idle:
-    _idleBehaviour(board, animals);
+    _idleBehaviour(board);
     break;
   case AnimalState::Thirsty:
-    _thirstyBehaviour(board, animals);
+    _thirstyBehaviour(board);
     break;
   case AnimalState::Hungry:
-    _hungryBehaviour(board, animals);
+    _hungryBehaviour(board);
     break;
   case AnimalState::Horny:
-    _hornyBehaviour(board, animals);
+    _hornyBehaviour(board);
     break;
   default:
     break;
@@ -177,15 +179,15 @@ Animal::AnimalState Rabbit::defineState(){
 
 }; //Rabbit::_defineState
 
-void Rabbit::_idleBehaviour(Board board, std::vector<Animal*> animals){
+void Rabbit::_idleBehaviour(Board board){
   
-  moveOneRandom(board,animals,this->_forbiddenLand);
+  moveOneRandom(board,this->_forbiddenLand);
 }; //Rabbit::_idleBehaviour
 
-void Rabbit::_thirstyBehaviour(Board board, std::vector<Animal*> animals){
+void Rabbit::_thirstyBehaviour(Board board){
   std::pair<int,int> nearestWater = searchFor(board, LandType::Water);
   if (nearestWater.first < 0){
-    moveOneRandom(board,animals,this->_forbiddenLand);
+    moveOneRandom(board,this->_forbiddenLand);
   }
   else{
     std::pair<int,int> moveLocation = board.plotMoveTowards(_location,nearestWater,this->_forbiddenLand);
@@ -197,10 +199,10 @@ void Rabbit::_thirstyBehaviour(Board board, std::vector<Animal*> animals){
   
 };
 
-void Rabbit::_hungryBehaviour(Board board, std::vector<Animal*> animals){
+void Rabbit::_hungryBehaviour(Board board){
   std::pair<int,int> nearestFood = searchFor(board, LandType::Food);
   if (nearestFood.first < 0){
-    moveOneRandom(board,animals,this->_forbiddenLand);
+    moveOneRandom(board,this->_forbiddenLand);
   }
   else{
     std::pair<int,int> moveLocation = board.plotMoveTowards(_location,nearestFood,this->_forbiddenLand);
@@ -211,13 +213,13 @@ void Rabbit::_hungryBehaviour(Board board, std::vector<Animal*> animals){
   }
 };
 
-void Rabbit::_hornyBehaviour(Board board, std::vector<Animal*> animals){
+void Rabbit::_hornyBehaviour(Board board){
   auto hornyLambda = [](Animal* animal){ return animal->isHorny(); };
-  Animal* closestRabbit = findClosestAnimal("rabbit", animals, &hornyLambda );
+  Animal* closestRabbit = findClosestAnimal(board, "rabbit", &hornyLambda );
   if (closestRabbit == NULL
       || utils::distanceBetween(closestRabbit->getLocation(), _location) > _sightRange
       ){
-    moveOneRandom(board,animals,this->_forbiddenLand);
+    moveOneRandom(board,this->_forbiddenLand);
   }
   else{
     //    std::pair<int,int> targetLocation = findClosestAnimal->getLocation();

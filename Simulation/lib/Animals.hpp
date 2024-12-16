@@ -54,17 +54,17 @@ protected:
   // Land the animal cannot move onto
   std::vector<LandType> _forbiddenLand;
   virtual AnimalState defineState() = 0;
-  virtual void runBehaviour(Board board, std::vector<Animal*> animals) = 0;
+  virtual void runBehaviour(Board board) = 0;
 
   // Movement methods
   bool existsLegalMoves(Board board);
-  void moveOneRandom(Board board, std::vector<Animal*> animals, std::vector<LandType> forbidden);
+  void moveOneRandom(Board board, std::vector<LandType> forbidden);
   void moveAnimal(std::pair<int,int> newLocation);
 
   // Search methods
   std::pair<int,int> searchFor(Board board, LandType search);
   template <typename F>
-  Animal* findClosestAnimal(std::string animalType, std::vector<Animal*> animals,  F* validityFunc = 0);
+  Animal* findClosestAnimal(Board board, std::string animalType,  F* validityFunc = 0);
 private:
   bool _checkLife();
 };
@@ -75,10 +75,10 @@ public:
   Rabbit(std::pair<int,int> start_location);
 private:
   AnimalState defineState();
-  void runBehaviour(Board board, std::vector<Animal*> animals);
+  void runBehaviour(Board board);
   // Different behaviours
-  void _idleBehaviour(Board board,  std::vector<Animal*> animals);
-  void _thirstyBehaviour(Board board,  std::vector<Animal*> animals);
-  void _hungryBehaviour(Board board,  std::vector<Animal*> animals);
-  void _hornyBehaviour(Board board,  std::vector<Animal*> animals);
+  void _idleBehaviour(Board board);
+  void _thirstyBehaviour(Board board);
+  void _hungryBehaviour(Board board);
+  void _hornyBehaviour(Board board);
 };

@@ -73,17 +73,6 @@ std::vector<std::pair<int,int>> Board::getLegalMoves(std::pair<int,int> location
   return legalMoves;
 }; //Board::getLegalMoves
 
-std::vector<std::pair<int,int>> Board::getLegalMovesWithAnimals(std::pair<int,int> location,std::vector<LandType> forbidden, std::vector<Animal*> animals){
-  std::vector<std::pair<int,int>> legalMovesBoard = getLegalMoves(location, forbidden);
-  std::vector<std::pair<int,int>> legalMovesChecked;
-  for (auto & legalMove : legalMovesBoard){
-    if (! utils::checkAnimalCollision(legalMove,animals)){
-      legalMovesChecked.push_back(legalMove);
-    }
-  }
-  return legalMovesChecked;
-}; // Board::getLegalMovesWithAnimals
-  
 std::pair<int, int> Board::getRandomAdjacentTile(std::pair<int,int> location,std::vector<LandType> forbidden){
   // Get a tile next to the current location, excluding land types in the forbidden list
   std::vector<std::pair<int,int>> legalMoves = getLegalMoves(location,forbidden);

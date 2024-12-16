@@ -31,7 +31,6 @@ public:
   // Utilities for getting free tiles
   bool isLegal(std::pair<int,int> location,std::vector<LandType> forbidden);
   std::vector<std::pair<int,int>> getLegalMoves(std::pair<int,int> location,std::vector<LandType> forbidden);
-  std::vector<std::pair<int,int>> getLegalMovesWithAnimals(std::pair<int,int> location,std::vector<LandType> forbidden, std::vector<Animal*> animals);
   std::pair<int, int> getRandomFreeTile();
   std::pair<int, int> getRandomAdjacentTile(std::pair<int,int> location,std::vector<LandType> forbidden);
   std::pair<int, int> getFreeTile(std::vector<Animal*> animals);
