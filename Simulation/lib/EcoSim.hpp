@@ -15,6 +15,5 @@ public:
   void printState();
 private:
   Board _board;
-  std::vector<Animal*> _animals;
   static const int _printTimesteps = 10;
 };

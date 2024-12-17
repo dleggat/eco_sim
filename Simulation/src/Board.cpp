@@ -76,6 +76,7 @@ std::vector<std::pair<int,int>> Board::getLegalMoves(std::pair<int,int> location
 std::pair<int, int> Board::getRandomAdjacentTile(std::pair<int,int> location,std::vector<LandType> forbidden){
   // Get a tile next to the current location, excluding land types in the forbidden list
   std::vector<std::pair<int,int>> legalMoves = getLegalMoves(location,forbidden);
+  if (legalMoves.size() == 0) return std::pair<int,int>(-1,-1);
   int selection;
   std::random_device rd;
   rand_gen = std::mt19937(rd());
@@ -182,3 +183,11 @@ std::pair<int,int> Board::plotMoveTowards(std::pair<int,int> start, std::pair<in
   }
   return bestDirection;
 };
+
+std::vector<Animal*> Board::getAnimals(){
+  std::vector<Animal*> animals;
+  for (auto & animalTile: animalTiles){
+    if (animalTile) animals.push_back(animalTile);
+  }
+  return animals;
+}

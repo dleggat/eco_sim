@@ -44,6 +44,7 @@ public:
   void placeAnimalAt(std::pair<int,int> location, Animal* animal) {animalTiles[location.first * _size_x + location.second] = animal;};
   void removeAnimalFrom(std::pair<int,int> location) {animalTiles[location.first * _size_x + location.second] = NULL;};
   Animal* getAnimalAt(std::pair<int,int> location) { return animalTiles[location.first * _size_x + location.second]; };
+  std::vector<Animal*> getAnimals();
 private:
   std::vector<LandType> landTiles;
   std::vector<Animal*> animalTiles;

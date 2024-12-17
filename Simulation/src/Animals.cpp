@@ -7,22 +7,22 @@ Animal::Animal():
 };
 
 Animal::Animal(std::pair<int,int> location):
-  _location(location), _energyDelta(0.02), _thirstDelta(0.004), _energy(1.0), _thirst(0.0), _sightRange(3), _state(AnimalState::Idle), _horn(0.)
+  _location(location), _energyDelta(0.02), _thirstDelta(0.004), _energy(1.0), _thirst(0.0), _sightRange(3), _state(AnimalState::Idle), _horn(0.), _babyEnergy(0.4), _internalCounter(0)
 {
 };
 
-void Animal::updateTimestep(Board * board, std::vector<Animal*> * animals){
+void Animal::updateTimestep(Board * board){
   // Update thirst tracker always
   this->_thirst += _thirstDelta;
 
   //Update internal counter, and run behaviour if we're at the animal's count
-  if (++_internalCounter % _movementIncrement != 0) return;
-
+  if (++_internalCounter % int(_movementIncrement) != 0) return;
+  
   _internalCounter = 0;
 
   // Remove animal from board whilst we do its behaviour
   board->removeAnimalFrom(getLocation());
-  
+
   _state = defineState();
 
   // And run animal specific behaviour based on it
@@ -30,7 +30,6 @@ void Animal::updateTimestep(Board * board, std::vector<Animal*> * animals){
 
   if (!_checkLife()){
     std::cout << "Animal has died!" << std::endl;
-    animals->erase(std::remove(animals->begin(),animals->end(), this), animals->end());
   }
   else {
     board->placeAnimalAt(getLocation(),this);
@@ -122,7 +121,7 @@ Animal* Animal::findClosestAnimal(Board board, std::string animalType,  F* valid
   return returnAnimal;
 }; //Animal::findClosestAnimal
 
-float Animal::_mutateAllele(float first, float second){
+float Animal::_mutateAllele(float first, float second, float minimumValue){
   float mean = (first + second) / 2.0;
   float stddev = abs(first-second);
   std::normal_distribution newAllele(mean,stddev);
@@ -132,7 +131,7 @@ float Animal::_mutateAllele(float first, float second){
   float returnValue;
   do{
     returnValue = newAllele(rand_gen);
-  } while (returnValue < 0.);
+  } while (returnValue < minimumValue);
   return returnValue;
   //return 1.0;
   //do (
@@ -256,17 +255,23 @@ void Rabbit::_hornyBehaviour(Board * board){
 
 template <typename F>
 void Animal::_mateAnimals(Board * board, Animal * animalOne, Animal * animalTwo, F* babyFunc){
-  
+
   float thirstyThreshold = _mutateAllele(animalOne->_thirstThreshold,animalTwo->_thirstThreshold);
   float energyThreshold = _mutateAllele(animalOne->_energyThreshold,animalTwo->_energyThreshold);
   float horninessThreshold = _mutateAllele(animalOne->_hornyThreshold,animalTwo->_hornyThreshold);
   float horniness = _mutateAllele(animalOne->_horniness,animalTwo->_horniness);
-  float movementInc = _mutateAllele(animalOne->_movementIncrement,animalTwo->_movementIncrement);
+  float movementInc = _mutateAllele(animalOne->_movementIncrement,animalTwo->_movementIncrement, 1.0);
 
   std::pair<int,int> babyLocation = board->getRandomAdjacentTile(animalOne->getLocation(),animalOne->_forbiddenLand);
-
+  // Only pro-create if there's room
+  if (babyLocation.first < 0) return;
+  
+  Animal* babyAnimal = (*babyFunc)(babyLocation,thirstyThreshold,energyThreshold,horninessThreshold,horniness,movementInc);
+  board->placeAnimalAt(babyLocation,babyAnimal);
+  
   //reset animal states
   for (auto animal: {animalOne,animalTwo}){
+    animal->_energy -= animal->_babyEnergy;
     animal->_horn = 0.;
     animal->_state = AnimalState::Idle;
   }

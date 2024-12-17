@@ -20,7 +20,7 @@ public:
   int getY() { return _location.second; };
   std::string getAnimalName() { return _animalName; };
   std::string printAnimal() { return _animal_print; };
-  void updateTimestep(Board * board, std::vector<Animal*> * animals);
+  void updateTimestep(Board * board);
   bool isHorny() {return this->_state == AnimalState::Horny;};
 
 
@@ -40,12 +40,13 @@ protected:
   // Animal state
   AnimalState _state;
   // The amount of time ticks between movements
-  int _movementIncrement;
+  float _movementIncrement;
   int _internalCounter;
   // Amount internal states change
   float _energyDelta;
   float _thirstDelta;
   float _horniness;
+  float _babyEnergy;
   //Properties that we could potentially evolve
   int _sightRange;
   float _thirstThreshold;
@@ -76,7 +77,7 @@ protected:
   static void _mateAnimals(Board * board, Animal * animalOne, Animal * animalTwo, F* babyFunc);
 
   // Static methods
-  static float _mutateAllele(float first, float second);
+  static float _mutateAllele(float first, float second, float minimumValue = 0.);
 private:
   bool _checkLife();
 

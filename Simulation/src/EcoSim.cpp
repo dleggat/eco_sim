@@ -16,8 +16,9 @@ EcoSim::EcoSim(Board board):
 void EcoSim::runSimulation(int timeSteps){
   // Main loop - probably wants long for longer simulations?
   for (int i = 0; i < timeSteps; i++){
-    for (auto & animal: _animals){
-      animal->updateTimestep(&_board,&_animals);
+    int j = 0;
+    for (auto & animal: _board.getAnimals()){
+      animal->updateTimestep(&_board);
     }
     if (i % _printTimesteps == 0){
       printState();
@@ -27,19 +28,12 @@ void EcoSim::runSimulation(int timeSteps){
 }; //runSimulation
 
 void EcoSim::printState(){
-  bool printed = false;
   for (int i = 0; i < _board.sizeX(); i++){
     for (int j = 0; j < _board.sizeY(); j++){
-      for (auto & animal: _animals){
-	printed = false;
-	if (animal->getLocation() == std::pair<int,int>(i,j)){
-	  std::cout << animal->printAnimal();
-	  printed = true;
-	  break;
-	}
+      if (_board.getAnimalAt(std::pair<int,int>(i,j))){
+	std::cout << _board.getAnimalAt(std::pair<int,int>(i,j))->printAnimal();
       }
-      //      for (auto animal: animals){
-      if (!printed) utils::printLandTile(_board.getTileTypeAt(i,j));
+      else utils::printLandTile(_board.getTileTypeAt(i,j));
       //}
     }
     std::cout << std::endl;
@@ -48,7 +42,6 @@ void EcoSim::printState(){
 }
 
 void EcoSim::setAnimals(std::vector<Animal*> *animals){
-  _animals = *animals;
   for (auto & animal: *animals){
     _board.placeAnimalAt(animal->getLocation(),animal);
   }
