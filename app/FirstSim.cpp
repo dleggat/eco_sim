@@ -39,10 +39,27 @@ int main(){
       hornyT = thresholds(rand_gen);
       horniness = horninessF(rand_gen);
       movementInc = rabbitMove(rand_gen);
-    } while (thirstyT < 0 || energyT < 0 || hornyT < 0 || horniness < 0 || movementInc < 0);
+    } while (thirstyT < 0 || energyT < 0 || hornyT < 0 || horniness < 0 || movementInc < 1);
     animals.push_back(new Rabbit(board.getFreeTile(animals),thirstyT,energyT,hornyT,horniness,movementInc));
   }
 
+  // Foxes!
+  std::normal_distribution<float> thresholdsFox(0.6,0.1);
+  std::normal_distribution<float> horninessFox(0.02,0.01);
+  std::normal_distribution<float> foxMove(8.,0.5);
+
+  int nFoxes = 2;
+  for (int i = 0; i < nFoxes; i++){
+    do {
+      thirstyT = thresholdsFox(rand_gen);
+      energyT = thresholdsFox(rand_gen);
+      hornyT = thresholdsFox(rand_gen);
+      horniness = horninessFox(rand_gen);
+      movementInc = foxMove(rand_gen);
+    } while (thirstyT < 0 || energyT < 0 || hornyT < 0 || horniness < 0 || movementInc < 1);
+    animals.push_back(new Fox(board.getFreeTile(animals),thirstyT,energyT,hornyT,horniness,movementInc));
+  }
+  
   simulation.setAnimals(&animals);
 
   int timeSteps = 10000;

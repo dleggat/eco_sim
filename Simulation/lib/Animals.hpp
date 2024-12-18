@@ -5,6 +5,7 @@
 #include <string>
 #include "Board.hpp"
 #include <cmath>
+#include <optional>
 
 class Board;
 enum struct LandType;
@@ -76,7 +77,7 @@ protected:
 
   // Search methods
   std::pair<int,int> searchFor(Board board, LandType search);
-  template <typename F>
+  template <typename F = bool(Animal*)>
   Animal* findClosestAnimal(Board board, std::string animalType,  F* validityFunc = 0);
   template <typename F>
   static void _mateAnimals(Board * board, Animal * animalOne, Animal * animalTwo, F* babyFunc);
