@@ -8,7 +8,7 @@
 int main(){
 
   // Make the board and set up some land types
-  Board board = Board(16,16);
+  Board board = Board(20,20);
   board.addPond(10);
   board.populateLandTypes(LandType::Water, 3);
   board.populateLandTypes(LandType::Food, 10);
@@ -27,7 +27,7 @@ int main(){
 
   std::normal_distribution<float> thresholds(0.5,0.1);
   std::normal_distribution<float> horninessF(0.1,0.01);
-  std::normal_distribution<float> rabbitMove(10.,1.1);  
+  std::normal_distribution<float> rabbitMove(10.,0.5);  
   
   // Just a couple of rabbits for now
   int nRabbits = 6;
@@ -45,7 +45,7 @@ int main(){
 
   simulation.setAnimals(&animals);
 
-  int timeSteps = 1000;
+  int timeSteps = 10000;
   
   simulation.runSimulation(timeSteps);
   
