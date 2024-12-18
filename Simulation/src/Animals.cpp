@@ -29,7 +29,8 @@ void Animal::updateTimestep(Board * board){
   runBehaviour(board);
 
   if (!_checkLife()){
-    std::cout << "Animal has died!" << std::endl;
+    //    std::cout << "Animal has died!" << std::endl;
+    delete this;
   }
   else {
     board->placeAnimalAt(getLocation(),this);
@@ -42,11 +43,11 @@ void Animal::updateTimestep(Board * board){
 bool Animal::_checkLife(){
   bool isAlive = true;
   if (_thirst > 1.0) {
-    std::cout << "Thirst!" << std::endl;
+    //    std::cout << "Thirst!" << std::endl;
     isAlive = false;
   }
   if (_energy < 0.){
-    std::cout << "Hunger!" << std::endl;
+    // std::cout << "Hunger!" << std::endl;
     isAlive = false;
   }
   return isAlive;
@@ -137,6 +138,26 @@ float Animal::_mutateAllele(float first, float second, float minimumValue){
   //do (
 };
 
+void Animal::_idleBehaviour(Board board){
+  
+  moveOneRandom(board,this->_forbiddenLand);
+}; //Rabbit::_idleBehaviour
+
+void Animal::_thirstyBehaviour(Board board){
+  std::pair<int,int> nearestWater = searchFor(board, LandType::Water);
+  if (nearestWater.first < 0){
+    moveOneRandom(board,this->_forbiddenLand);
+  }
+  else{
+    std::pair<int,int> moveLocation = board.plotMoveTowards(_location,nearestWater,this->_forbiddenLand);
+    moveAnimal(moveLocation);
+  }
+  if (board.adjacentContains(_location,{LandType::Water})){
+    this->_thirst = 0.;
+  }
+  
+} //Animal::_thirstyBehaviour
+
 Rabbit::Rabbit():
   Animal(std::pair<int, int>(0.,0.))
 {
@@ -168,16 +189,17 @@ Rabbit::Rabbit(std::pair<int,int> location, float thirstThreshold, float energyT
   this->_thirstThreshold = thirstThreshold;
   this->_energyThreshold = energyThreshold;
   this->_hornyThreshold = hornyThreshold;
+  rabbitPopulation++;
 };
 
 void Rabbit::runBehaviour(Board * board){
   std::pair<int,int> moveLocation;
   switch (_state){
   case AnimalState::Idle:
-    _idleBehaviour(*board);
+    this->_idleBehaviour(*board);
     break;
   case AnimalState::Thirsty:
-    _thirstyBehaviour(*board);
+    this->_thirstyBehaviour(*board);
     break;
   case AnimalState::Hungry:
     _hungryBehaviour(*board);
@@ -200,26 +222,6 @@ Animal::AnimalState Rabbit::defineState(){
   return AnimalState::Idle;
 
 }; //Rabbit::_defineState
-
-void Rabbit::_idleBehaviour(Board board){
-  
-  moveOneRandom(board,this->_forbiddenLand);
-}; //Rabbit::_idleBehaviour
-
-void Rabbit::_thirstyBehaviour(Board board){
-  std::pair<int,int> nearestWater = searchFor(board, LandType::Water);
-  if (nearestWater.first < 0){
-    moveOneRandom(board,this->_forbiddenLand);
-  }
-  else{
-    std::pair<int,int> moveLocation = board.plotMoveTowards(_location,nearestWater,this->_forbiddenLand);
-    moveAnimal(moveLocation);
-  }
-  if (board.adjacentContains(_location,{LandType::Water})){
-    this->_thirst = 0.;
-  }
-  
-};
 
 void Rabbit::_hungryBehaviour(Board board){
   std::pair<int,int> nearestFood = searchFor(board, LandType::Food);

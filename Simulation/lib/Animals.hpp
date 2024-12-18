@@ -15,6 +15,7 @@ public:
   Animal();
   Animal(std::pair<int,int> location);
   Animal(std::pair<int,int> location, float thirstThreshold, float energyThreshold, float hornyThreshold, float horniness, float movementInc);
+  virtual ~Animal() = default;
   std::pair <int, int>  getLocation() { return _location; };
   int getX() { return _location.first; };
   int getY() { return _location.second; };
@@ -64,6 +65,10 @@ protected:
   virtual AnimalState defineState() = 0;
   virtual void runBehaviour(Board * board) = 0;
 
+  // Behaviour methods. We will define default ones that can be overridden by inheretted classes
+  void _idleBehaviour(Board board);
+  void _thirstyBehaviour(Board board);
+  
   // Movement methods
   bool existsLegalMoves(Board board);
   void moveOneRandom(Board board, std::vector<LandType> forbidden);
@@ -86,15 +91,31 @@ private:
 class Rabbit: public Animal{
 public:
   Rabbit();
-  Rabbit(std::pair<int,int> start_location);
+  Rabbit(std::pair<int,int> startLocation);
   Rabbit(std::pair<int,int> location, float thirstThreshold, float energyThreshold, float hornyThreshold, float horniness, float movementInc);
 
+  ~Rabbit() {rabbitPopulation--;};
+  static inline int rabbitPopulation = 0;
 private:
   AnimalState defineState();
   void runBehaviour(Board * board);
   // Different behaviours
-  void _idleBehaviour(Board board);
-  void _thirstyBehaviour(Board board);
   void _hungryBehaviour(Board board);
+  void _hornyBehaviour(Board * board);
+};
+
+class Fox: public Animal{
+public:
+  Fox();
+  Fox(std::pair<int,int> startLocation);
+  Fox(std::pair<int,int> location, float thirstThreshold, float energyThreshold, float hornyThreshold, float horniness, float movementInc);
+
+  ~Fox() {foxPopulation--;};
+  static inline int foxPopulation = 0;
+private:
+  AnimalState defineState();
+  void runBehaviour(Board * board);
+  //behaviours
+  void _hungryBehaviour(Board * board);
   void _hornyBehaviour(Board * board);
 };
