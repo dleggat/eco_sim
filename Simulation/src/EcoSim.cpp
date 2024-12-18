@@ -38,6 +38,7 @@ void EcoSim::printState(){
     }
     std::cout << std::endl;
   }
+  std::cout << "Rabbits: " << Rabbit::rabbitPopulation << " " << _board.getAnimals().size() << std::endl;
     
 }
 
