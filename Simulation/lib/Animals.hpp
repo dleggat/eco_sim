@@ -45,6 +45,7 @@ protected:
   int _internalCounter;
   // Amount internal states change
   float _energyDelta;
+  float _smallEnergyDelta;
   float _thirstDelta;
   float _horniness;
   float _babyEnergy;

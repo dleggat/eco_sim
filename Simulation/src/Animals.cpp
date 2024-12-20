@@ -7,13 +7,14 @@ Animal::Animal():
 };
 
 Animal::Animal(std::pair<int,int> location):
-  _location(location), _energyDelta(0.02), _thirstDelta(0.004), _energy(1.0), _thirst(0.0), _sightRange(3), _state(AnimalState::Idle), _horn(0.), _babyEnergy(0.4), _internalCounter(0)
+  _location(location), _energyDelta(0.02), _thirstDelta(0.004), _energy(1.0), _thirst(0.0), _sightRange(3), _state(AnimalState::Idle), _horn(0.), _babyEnergy(0.4), _internalCounter(0), _smallEnergyDelta(0.004)
 {
 };
 
 void Animal::updateTimestep(Board * board){
   // Update thirst tracker always
   this->_thirst += _thirstDelta;
+  this->_energy -= _smallEnergyDelta;
 
   //Update internal counter, and run behaviour if we're at the animal's count
   if (++_internalCounter % int(_movementIncrement) != 0) return;
