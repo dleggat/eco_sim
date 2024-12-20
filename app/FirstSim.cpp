@@ -26,7 +26,7 @@ int main(){
   std::mt19937 rand_gen(rd());
 
   std::normal_distribution<float> thresholds(0.5,0.1);
-  std::normal_distribution<float> horninessF(0.1,0.01);
+  std::normal_distribution<float> horninessF(0.06,0.01);
   std::normal_distribution<float> rabbitMove(10.,0.5);  
   
   // Just a couple of rabbits for now
