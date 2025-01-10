@@ -5,6 +5,7 @@
 #include <string>
 #include "Board.hpp"
 #include <cmath>
+#include <map>
 
 class Board;
 enum struct LandType;
@@ -23,7 +24,7 @@ public:
   std::string printAnimal() { return _animal_print; };
   void updateTimestep(Board * board);
   bool isHorny() {return this->_state == AnimalState::Horny;};
-
+  std::map<std::string,float> pollGenes();
 
   
   enum struct AnimalState{
