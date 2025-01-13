@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <thread>
+#include <filesystem>
 
 using namespace std::literals::chrono_literals;
 
@@ -17,14 +18,14 @@ void EcoSim::runSimulation(int timeSteps){
   // Main loop - probably wants long for longer simulations?
   for (int i = 0; i < timeSteps; i++){
     int j = 0;
-    for (auto & animal: _board.getAnimals()){
+    for (auto & animal: _getAnimals()){
       animal->updateTimestep(&_board);
     }
     if (i % _printTimesteps == 0){
       printState();
     }
     if (i % _pollTimesteps == 0){
-      _pollAnimalState(_board.getAnimals());
+      _pollAnimalState(_getAnimals());
     }
     std::this_thread::sleep_for(10ms);
   }
@@ -77,4 +78,67 @@ void EcoSim::_pollAnimalState(std::vector<Animal*> animals){
       _geneInformation[animal->getAnimalName()][gene.first].back().push_back(gene.second);
     }
   }
+}
+
+void EcoSim::makePlots(std::string outputDirectory){
+
+  std::cout << "Entering plotting routine" << std::endl;
+  
+  // Make our output directory if we don't have it already
+  if (!std::filesystem::exists(outputDirectory)) std::filesystem::create_directories(outputDirectory);
+
+  for (auto animalMap: _geneInformation){
+    std::cout << animalMap.first << std::endl;
+    bool plotPop = true;
+    for (auto geneMap: animalMap.second){
+      std::cout << geneMap.first << std::endl;
+      _processOneGene(outputDirectory, animalMap.first, geneMap.first, geneMap.second, plotPop);
+      plotPop = false;
+    }
+  }
+  
+}
+
+void EcoSim::_processOneGene(std::string outputDirectory, std::string animal, std::string gene, std::vector<std::vector<float>> vecOfVecs, bool plotPop){
+
+  std::vector<float> means;
+  std::vector<float> stdDevs;
+  std::vector<int> population;
+  
+  for (auto timestepVec: vecOfVecs){
+    float sum = 0.0;
+    for (auto datum: timestepVec){
+      sum += datum;
+    }
+    float mean = sum / timestepVec.size();
+
+    float stdDev = 0.0;
+    for (auto datum: timestepVec){
+      stdDev += pow(datum - mean, 2);
+    }
+    means.push_back(mean);
+    stdDevs.push_back(stdDev);
+    population.push_back(timestepVec.size());
+  }
+  if (plotPop){
+    _plotPopulation(animal+"_population", outputDirectory, population);
+  }
+  _plotGeneAverage(means, stdDevs, animal+"_"+gene, outputDirectory);
+}
+
+void EcoSim::_plotPopulation(std::string plotName, std::string outputDirectory, std::vector<int> population){
+  std::vector<double> x = matplot::linspace(0,population.size(),population.size());
+  matplot::plot(x,population);
+  matplot::title(plotName);
+  std::string saveName = outputDirectory + "/" + plotName + ".png";  
+  matplot::save(saveName);
+}
+
+void EcoSim::_plotGeneAverage(std::vector<float> means, std::vector<float> sigmas, std::string plotName, std::string outputDirectory){
+  // Make one plot
+  std::vector<double> x = matplot::linspace(0,means.size(),means.size());
+  matplot::errorbar(x,means,sigmas);
+  matplot::title(plotName);
+  std::string saveName = outputDirectory + "/" + plotName + ".png";
+  matplot::save(saveName);
 }
