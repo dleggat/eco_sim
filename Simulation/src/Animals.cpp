@@ -280,3 +280,13 @@ void Animal::_mateAnimals(Board * board, Animal * animalOne, Animal * animalTwo,
   }
   
 }; //Rabbit::_mateRabbit
+
+std::map<std::string,float> Animal::pollGenes(){
+  return {
+    { "Thirst", _thirstThreshold },
+    { "Energy", _energyThreshold },
+    { "Horny" , _hornyThreshold },
+    { "Horniness", _horniness },
+    { "Movement", _movementIncrement }
+  };
+}

@@ -1,2 +1,3 @@
 add_executable(FirstSim FirstSim.cpp)
-target_link_libraries(FirstSim PUBLIC SimulationLib)
+find_package(Matplot++ REQUIRED)
+target_link_libraries(FirstSim PUBLIC SimulationLib Matplot++::matplot)

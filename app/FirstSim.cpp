@@ -48,6 +48,8 @@ int main(){
   int timeSteps = 10000;
   
   simulation.runSimulation(timeSteps);
+
+  simulation.makePlots("testOut");
   
   return 0;
 }
