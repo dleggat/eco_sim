@@ -5,8 +5,36 @@
 
 #include <vector>
 
-int main(){
+char* getCmdOption(char ** begin, char ** end, const std::string & option){
+  if (begin == end) return 0;
+  std::cout << option << std::endl;
+  char ** itr = std::find(begin, end, option);  
+  if (itr != end && ++itr != end){
+    return *itr;
+  }
+  return 0;
+}
 
+void printHelp(){
+  std::cout << "FirstSim usage ./bin/FirstSim [args]" << std::endl;
+  std::cout << " Options:" << std::endl;
+  std::cout << " -o: output directory for creating plots of the simulation" << std::endl;
+  std::cout << " -t: number of timesteps to run the simulation for " << std::endl;
+}
+
+int main(int argc, char * argv[]){
+
+  // Parse command lines args
+  // Help message
+  if (getCmdOption(argv, argv+argc, "-h")){
+    printHelp();
+    return 0;
+  }
+  
+  char * outDir = getCmdOption(argv, argv+argc, "-o");
+  char * timestepsCLI = getCmdOption(argv, argv+argc, "-t");
+  
+  
   // Make the board and set up some land types
   Board board = Board(20,20);
   board.addPond(10);
@@ -45,11 +73,16 @@ int main(){
 
   simulation.setAnimals(&animals);
 
-  int timeSteps = 10000;
-  
+  int timeSteps = 1000;
+  if (timestepsCLI){
+    timeSteps = atoi(timestepsCLI);
+  }
+
   simulation.runSimulation(timeSteps);
 
-  simulation.makePlots("testOut");
+  if (outDir){
+    simulation.makePlots(outDir);
+  }
   
   return 0;
 }
