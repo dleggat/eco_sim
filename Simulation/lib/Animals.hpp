@@ -6,6 +6,7 @@
 #include "Board.hpp"
 #include <cmath>
 #include <optional>
+#include <map>
 
 class Board;
 enum struct LandType;
@@ -24,7 +25,7 @@ public:
   std::string printAnimal() { return _animal_print; };
   void updateTimestep(Board * board);
   bool isHorny() {return this->_state == AnimalState::Horny;};
-
+  std::map<std::string,float> pollGenes();
 
   
   enum struct AnimalState{
@@ -46,6 +47,7 @@ protected:
   int _internalCounter;
   // Amount internal states change
   float _energyDelta;
+  float _smallEnergyDelta;
   float _thirstDelta;
   float _horniness;
   float _babyEnergy;
