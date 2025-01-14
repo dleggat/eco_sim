@@ -7,7 +7,6 @@
 
 char* getCmdOption(char ** begin, char ** end, const std::string & option){
   if (begin == end) return 0;
-  std::cout << option << std::endl;
   char ** itr = std::find(begin, end, option);  
   if (itr != end && ++itr != end){
     return *itr;
@@ -20,6 +19,8 @@ void printHelp(){
   std::cout << " Options:" << std::endl;
   std::cout << " -o: output directory for creating plots of the simulation" << std::endl;
   std::cout << " -t: number of timesteps to run the simulation for " << std::endl;
+  std::cout << " -r: number of rabbits in initial conditions" << std::endl;
+  std::cout << " -f: number of foxes in initial conditions" << std::endl;
 }
 
 int main(int argc, char * argv[]){
@@ -33,14 +34,15 @@ int main(int argc, char * argv[]){
   
   char * outDir = getCmdOption(argv, argv+argc, "-o");
   char * timestepsCLI = getCmdOption(argv, argv+argc, "-t");
-  
+  char * nRabbitsCLI = getCmdOption(argv, argv+argc, "-r");
+  char * nFoxesCLI = getCmdOption(argv, argv+argc, "-f");
   
   // Make the board and set up some land types
-  Board board = Board(20,20);
-  board.addPond(10);
-  board.populateLandTypes(LandType::Water, 3);
-  board.populateLandTypes(LandType::Food, 10);
-  board.populateLandTypes(LandType::Bush, 10);
+  Board board = Board(25,25);
+  board.addPond(14);
+  board.populateLandTypes(LandType::Water, 5);
+  board.populateLandTypes(LandType::Food, 12);
+  board.populateLandTypes(LandType::Bush, 15);
   //  board.printBoard();
   
   EcoSim simulation(board);
@@ -59,6 +61,7 @@ int main(int argc, char * argv[]){
   
   // Just a couple of rabbits for now
   int nRabbits = 6;
+  if (nRabbitsCLI) nRabbits = atoi(nRabbitsCLI);
   for (int i = 0; i < nRabbits; i++){
     // Randomise allioles
     do {
@@ -73,10 +76,11 @@ int main(int argc, char * argv[]){
 
   // Foxes!
   std::normal_distribution<float> thresholdsFox(0.6,0.1);
-  std::normal_distribution<float> horninessFox(0.02,0.01);
+  std::normal_distribution<float> horninessFox(0.04,0.01);
   std::normal_distribution<float> foxMove(8.,0.5);
 
-  int nFoxes = 2;
+  int nFoxes = 3;
+  if (nFoxesCLI) nFoxes = atoi(nFoxesCLI);
   for (int i = 0; i < nFoxes; i++){
     do {
       thirstyT = thresholdsFox(rand_gen);
@@ -97,6 +101,8 @@ int main(int argc, char * argv[]){
 
   simulation.runSimulation(timeSteps);
 
+  std::cout << "Ended sim" << std::endl;
+  
   if (outDir){
     simulation.makePlots(outDir);
   }
