@@ -115,6 +115,31 @@ bool Board::_coordInBounds(std::pair<int,int> coord){
 	   && coord.second >= 0 && coord.second < _size_y);
 }; //coordInBounds
 
+void Board::placeAnimalAt(std::pair<int,int> location, Animal* animal, bool addToMap){
+  animalTiles[location.first * _size_x + location.second] = animal;
+  if (addToMap){
+    _animalMap[animal->getID()] = animal;
+  }
+}; //Board::placeAnimalAt()
+
+void Board::removeAnimalFrom(std::pair<int,int> location, bool removeFromMap){
+  if (removeFromMap){
+    _animalMap.erase(animalTiles[location.first * _size_x + location.second]->getID());
+  }
+  animalTiles[location.first * _size_x + location.second] = NULL;
+}
+
+void Board::removeFromMap(int id){
+  if (_animalMap.count(id) == 1){
+    std::cout << "removing " << id << std::endl;
+    _animalMap.erase(id);
+  }
+  else {
+    std::cout << "Animal count error for " << id << " counts " << _animalMap.count(id) << std::endl;
+  }
+  std::cout << _animalMap.count(id) << std::endl;
+}
+
 void Board::addPond(int nTiles){
 
   std::vector<std::pair<int,int> > pondTiles;
@@ -190,4 +215,17 @@ std::vector<Animal*> Board::getAnimals(){
     if (animalTile) animals.push_back(animalTile);
   }
   return animals;
+}
+
+void Board::_removeBuffered(){
+  for (auto id: _idsToDelete){
+    delete _animalMap[id];
+    _animalMap.erase(id);
+  }
+}
+
+void Board::updateBoardTimestep(){
+  // remove the buffered animals
+  _removeBuffered();
+  // plausibly this is also where we could change where food if we decide to do that
 }

@@ -16,11 +16,14 @@ EcoSim::EcoSim(Board board):
 
 void EcoSim::runSimulation(int timeSteps){
   // Main loop - probably wants long for longer simulations?
+  std::vector<int> animalsToRemove = {};
   for (int i = 0; i < timeSteps; i++){
-    int j = 0;
-    for (auto & animal: _getAnimals()){
-      animal->updateTimestep(&_board);
+    animalsToRemove.clear();
+    for (auto & animal: *_board.getAnimalMap()){
+      if (_board.isAnimalRemovalBuffered(animal.first)) continue;
+      animal.second->updateTimestep(&_board);
     }
+    _board.updateBoardTimestep();
     if (i % _printTimesteps == 0){
       printState();
     }
@@ -42,13 +45,13 @@ void EcoSim::printState(){
     }
     std::cout << std::endl;
   }
-  std::cout << "Rabbits: " << Rabbit::rabbitPopulation << " Foxes: " << Fox::foxPopulation << " " << _board.getAnimals().size() << std::endl;
+  std::cout << "Rabbits: " << Rabbit::rabbitPopulation << " Foxes: " << Fox::foxPopulation << " " << _board.getAnimals().size() << " " << _board.getAnimalMap()->size() << std::endl;
     
 }
 
 void EcoSim::setAnimals(std::vector<Animal*> *animals){
   for (auto & animal: *animals){
-    _board.placeAnimalAt(animal->getLocation(),animal);
+    _board.placeAnimalAt(animal->getLocation(),animal,true);
     //Prime our gene information storage whilst we're here
     if (!_geneInformation.count(animal->getAnimalName())){
       std::map<std::string, std::vector<std::vector<float> > > animalGeneMap;

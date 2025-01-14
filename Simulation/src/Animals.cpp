@@ -7,7 +7,7 @@ Animal::Animal():
 };
 
 Animal::Animal(std::pair<int,int> location):
-  _location(location), _energyDelta(0.02), _thirstDelta(0.004), _energy(1.0), _thirst(0.0), _sightRange(3), _state(AnimalState::Idle), _horn(0.), _babyEnergy(0.4), _internalCounter(0), _smallEnergyDelta(0.004)
+  _location(location), _energyDelta(0.02), _thirstDelta(0.004), _energy(1.0), _thirst(0.0), _sightRange(3), _state(AnimalState::Idle), _horn(0.), _babyEnergy(0.4), _internalCounter(0), _smallEnergyDelta(0.004), _uniqueId(Animal::animalID++)
 {
 };
 
@@ -30,11 +30,14 @@ void Animal::updateTimestep(Board * board){
   runBehaviour(board);
 
   if (!_checkLife()){
-    //    std::cout << "Animal has died!" << std::endl;
+    board->bufferAnimalIDRemoval(getID());
+    return;
+
     delete this;
   }
   else {
     board->placeAnimalAt(getLocation(),this);
+    return;
   }
 
   
@@ -269,7 +272,7 @@ void Animal::_mateAnimals(Board * board, Animal * animalOne, Animal * animalTwo,
   if (babyLocation.first < 0) return;
   
   Animal* babyAnimal = (*babyFunc)(babyLocation,thirstyThreshold,energyThreshold,horninessThreshold,horniness,movementInc);
-  board->placeAnimalAt(babyLocation,babyAnimal);
+  board->placeAnimalAt(babyLocation,babyAnimal,true);
   
   //reset animal states
   for (auto animal: {animalOne,animalTwo}){
@@ -311,6 +314,7 @@ Fox::Fox(std::pair<int,int> location, float thirstThreshold, float energyThresho
   this->_thirstThreshold = thirstThreshold;
   this->_energyThreshold = energyThreshold;
   this->_hornyThreshold = hornyThreshold;
+  this->_energyDelta = 0.01;
   foxPopulation++;
 };
 
@@ -357,7 +361,7 @@ void Fox::_hungryBehaviour(Board * board){
     if (utils::distanceBetween(_location,closestRabbit->getLocation()) < 1.1){
       this->_energy = 1.0;
       board->removeAnimalFrom(closestRabbit->getLocation());
-      delete closestRabbit;
+      board->bufferAnimalIDRemoval(closestRabbit->getID());
     }
   }
 } // Fox::_hungryBehaviour

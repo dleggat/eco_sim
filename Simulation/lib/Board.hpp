@@ -6,6 +6,7 @@
 #include <random>
 #include <algorithm>
 #include "Animals.hpp"
+#include <map>
 
 class Animal;
 
@@ -41,10 +42,14 @@ public:
   bool adjacentContains(std::pair<int,int> location, std::vector<LandType> types);
   bool _coordInBounds(std::pair<int,int> coord);
   // Place and remove animal from tiles
-  void placeAnimalAt(std::pair<int,int> location, Animal* animal) {animalTiles[location.first * _size_x + location.second] = animal;};
-  void removeAnimalFrom(std::pair<int,int> location) {animalTiles[location.first * _size_x + location.second] = NULL;};
+  void placeAnimalAt(std::pair<int,int> location, Animal* animal, bool addToMap = false);
+  void removeAnimalFrom(std::pair<int,int> location, bool removeFromMap = false);
+  void bufferAnimalIDRemoval(int id){_idsToDelete.push_back(id);};
+  bool isAnimalRemovalBuffered(int id){return (std::find(_idsToDelete.begin(),_idsToDelete.end(),id) != _idsToDelete.end());};
+  void removeFromMap(int id);
   Animal* getAnimalAt(std::pair<int,int> location) { return animalTiles[location.first * _size_x + location.second]; };
   std::vector<Animal*> getAnimals();
+  std::map<int,Animal*>* getAnimalMap(){return &_animalMap;};
 private:
   std::vector<LandType> landTiles;
   std::vector<Animal*> animalTiles;
@@ -57,4 +62,9 @@ private:
   std::uniform_int_distribution<int> four_ways;
   std::vector<std::pair<int,int>> moveVector;
   std::vector<std::pair<int,int>> selfAndSurround;
+
+  std::map<int,Animal*> _animalMap;
+  // To delete animals we have to make a temp store of ids to be deleted
+  std::vector<int> _idsToDelete;
+  void _removeBuffered();
 };

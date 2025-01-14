@@ -25,8 +25,10 @@ public:
   std::string printAnimal() { return _animal_print; };
   void updateTimestep(Board * board);
   bool isHorny() {return this->_state == AnimalState::Horny;};
+  int getID() {return _uniqueId;};
   std::map<std::string,float> pollGenes();
 
+  static inline int animalID = 1;
   
   enum struct AnimalState{
     Idle,
@@ -88,6 +90,7 @@ protected:
   static float _mutateAllele(float first, float second, float minimumValue = 0.);
 private:
   bool _checkLife();
+  const int _uniqueId;
 
 };
 
