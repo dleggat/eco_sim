@@ -101,8 +101,6 @@ int main(int argc, char * argv[]){
 
   simulation.runSimulation(timeSteps);
 
-  std::cout << "Ended sim" << std::endl;
-  
   if (outDir){
     simulation.makePlots(outDir);
   }
