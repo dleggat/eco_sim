@@ -5,7 +5,6 @@
 #include <string>
 #include "Board.hpp"
 #include <cmath>
-#include <optional>
 #include <map>
 
 class Board;
