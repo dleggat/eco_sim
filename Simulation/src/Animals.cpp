@@ -7,7 +7,7 @@ Animal::Animal():
 };
 
 Animal::Animal(std::pair<int,int> location):
-  _location(location), _energyDelta(0.02), _thirstDelta(0.004), _energy(1.0), _thirst(0.0), _sightRange(3), _state(AnimalState::Idle), _horn(0.), _babyEnergy(0.4), _internalCounter(0), _smallEnergyDelta(0.004)
+  _location(location), _energyDelta(0.02), _thirstDelta(0.004), _energy(1.0), _thirst(0.0), _sightRange(3), _state(AnimalState::Idle), _horn(0.), _babyEnergy(0.4), _internalCounter(0), _smallEnergyDelta(0.004), _uniqueId(Animal::animalID++)
 {
 };
 
@@ -30,11 +30,14 @@ void Animal::updateTimestep(Board * board){
   runBehaviour(board);
 
   if (!_checkLife()){
-    //    std::cout << "Animal has died!" << std::endl;
+    board->bufferAnimalIDRemoval(getID());
+    return;
+
     delete this;
   }
   else {
     board->placeAnimalAt(getLocation(),this);
+    return;
   }
 
   
@@ -194,7 +197,6 @@ Rabbit::Rabbit(std::pair<int,int> location, float thirstThreshold, float energyT
 };
 
 void Rabbit::runBehaviour(Board * board){
-  std::pair<int,int> moveLocation;
   switch (_state){
   case AnimalState::Idle:
     this->_idleBehaviour(*board);
@@ -270,7 +272,7 @@ void Animal::_mateAnimals(Board * board, Animal * animalOne, Animal * animalTwo,
   if (babyLocation.first < 0) return;
   
   Animal* babyAnimal = (*babyFunc)(babyLocation,thirstyThreshold,energyThreshold,horninessThreshold,horniness,movementInc);
-  board->placeAnimalAt(babyLocation,babyAnimal);
+  board->placeAnimalAt(babyLocation,babyAnimal,true);
   
   //reset animal states
   for (auto animal: {animalOne,animalTwo}){
@@ -281,6 +283,107 @@ void Animal::_mateAnimals(Board * board, Animal * animalOne, Animal * animalTwo,
   
 }; //Rabbit::_mateRabbit
 
+Fox::Fox():
+  Animal(std::pair<int, int>(0.,0.))
+{
+};
+
+Fox::Fox(std::pair<int,int> location):
+  Fox(location,0.6,0.6,0.6,0.05,8)
+{
+};
+
+Fox::Fox(std::pair<int,int> location, float thirstThreshold, float energyThreshold, float hornyThreshold, float horniness, float movementInc):
+  Animal(location)
+  //  _location(location), _movementIncrement(10), _energyDelta(0.02)
+{
+  this->_animal_print = "\\/";
+  this->_movementIncrement = movementInc;
+  this->_forbiddenLand = {LandType::Water,LandType::Bush};
+  this->_sightRange = 4;
+  this->_animalName = "fox";
+  for (int i = -_sightRange; i < _sightRange + 1; i++){
+    for (int j = -_sightRange; j < _sightRange + 1; j++){
+      //skip outside of the sight range
+      float range = sqrt((i*i)+(j*j));
+      if (floor(range) > _sightRange) continue;
+      this->_sightGrid.push_back(std::pair<int,int>(i,j));
+    }
+  }
+  this->_horniness = horniness;
+  this->_thirstThreshold = thirstThreshold;
+  this->_energyThreshold = energyThreshold;
+  this->_hornyThreshold = hornyThreshold;
+  this->_energyDelta = 0.01;
+  foxPopulation++;
+};
+
+Animal::AnimalState Fox::defineState(){
+  // For now, let's just return idle
+  if (_energy < this->_energyThreshold) return AnimalState::Hungry;
+  if (_thirst > this->_thirstThreshold) return AnimalState::Thirsty;
+  // If we aren't hungry or thirsty, the rabbit starts getting horny
+  this->_horn+=this->_horniness;
+  if (this->_horn > this->_hornyThreshold ) return AnimalState::Horny;
+  return AnimalState::Idle;
+
+}; //Fox::_defineState
+
+void Fox::runBehaviour(Board * board){
+  switch (_state){
+  case AnimalState::Idle:
+    this->_idleBehaviour(*board);
+    break;
+  case AnimalState::Thirsty:
+    this->_thirstyBehaviour(*board);
+    break;
+  case AnimalState::Hungry:
+    _hungryBehaviour(board);
+    break;
+  case AnimalState::Horny:
+    _hornyBehaviour(board);
+    break;
+  default:
+    break;
+  }
+}; //Rabbit::runBehaviour
+
+void Fox::_hungryBehaviour(Board * board){
+
+  Animal* closestRabbit = findClosestAnimal(*board, "rabbit");
+  if (!closestRabbit){
+    moveOneRandom(*board, this->_forbiddenLand);
+  }
+  else{
+    std::pair<int,int> targetLocation = closestRabbit->getLocation();
+    std::pair<int,int> moveLocation = board->plotMoveTowards(_location,targetLocation,this->_forbiddenLand);
+    moveAnimal(moveLocation);
+    if (utils::distanceBetween(_location,closestRabbit->getLocation()) < 1.1){
+      this->_energy = 1.0;
+      board->removeAnimalFrom(closestRabbit->getLocation());
+      board->bufferAnimalIDRemoval(closestRabbit->getID());
+    }
+  }
+} // Fox::_hungryBehaviour
+
+void Fox::_hornyBehaviour(Board * board){
+  auto hornyLambda = [](Animal* animal){ return animal->isHorny(); };
+  Animal* closestFox = findClosestAnimal(*board, "fox", &hornyLambda );
+  if (closestFox == NULL){
+    moveOneRandom(*board, this->_forbiddenLand);
+  }
+  else{
+    std::pair<int,int> targetLocation = closestFox->getLocation();
+    std::pair<int,int> moveLocation = board->plotMoveTowards(_location,targetLocation,this->_forbiddenLand);
+    moveAnimal(moveLocation);
+    if (utils::distanceBetween(_location,closestFox->getLocation()) < 1.1){
+      auto makeFoxCubLambda = [](std::pair<int,int> location, float thirstyT, float energyT, float hornyT, float horniness, float movementInc){ return new Fox(location,thirstyT,energyT,hornyT,horniness,movementInc); };
+      Animal::_mateAnimals(board, (Animal*)this,closestFox,&makeFoxCubLambda);
+    }
+    //    moveOneRandom(board,animals,this->_forbiddenLand);
+  }
+};
+
 std::map<std::string,float> Animal::pollGenes(){
   return {
     { "Thirst", _thirstThreshold },
@@ -290,3 +393,4 @@ std::map<std::string,float> Animal::pollGenes(){
     { "Movement", _movementIncrement }
   };
 }
+

@@ -24,8 +24,10 @@ public:
   std::string printAnimal() { return _animal_print; };
   void updateTimestep(Board * board);
   bool isHorny() {return this->_state == AnimalState::Horny;};
+  int getID() {return _uniqueId;};
   std::map<std::string,float> pollGenes();
 
+  static inline int animalID = 1;
   
   enum struct AnimalState{
     Idle,
@@ -78,7 +80,7 @@ protected:
 
   // Search methods
   std::pair<int,int> searchFor(Board board, LandType search);
-  template <typename F>
+  template <typename F = bool(Animal*)>
   Animal* findClosestAnimal(Board board, std::string animalType,  F* validityFunc = 0);
   template <typename F>
   static void _mateAnimals(Board * board, Animal * animalOne, Animal * animalTwo, F* babyFunc);
@@ -87,6 +89,7 @@ protected:
   static float _mutateAllele(float first, float second, float minimumValue = 0.);
 private:
   bool _checkLife();
+  const int _uniqueId;
 
 };
 
