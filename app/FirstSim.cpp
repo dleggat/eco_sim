@@ -38,15 +38,16 @@ int main(int argc, char * argv[]){
   char * nFoxesCLI = getCmdOption(argv, argv+argc, "-f");
   
   // Make the board and set up some land types
-  Board board = Board(60,60);
+  Board board = Board(70,70);
   board.addPond(30);
   board.addPond(30);
   board.addPond(20);
   board.addPond(30);
   board.addPond(50);
+  board.addPond(40);
   board.populateLandTypes(LandType::Water, 2);
-  board.populateLandTypes(LandType::Food, 50);
-  board.populateLandTypes(LandType::Bush, 10);
+  board.populateLandTypes(LandType::Food, 60);
+  board.populateLandTypes(LandType::Bush, 40);
   //  board.printBoard();
   
   EcoSim simulation(board);
@@ -54,7 +55,7 @@ int main(int argc, char * argv[]){
   // Make animals
   std::vector<Animal *> animals;
 
-  float thirstyT = 0.5, energyT = 0.5, hornyT = 0.5, horniness = 0.1, movementInc = 10.;
+  float thirstyT = 0.5, energyT = 0.5, hornyT = 0.5, horniness = 0.1, movementInc = 10., thirstyCritT = 0.1, energyCritT = 0.1;
 
   std::random_device rd;
   std::mt19937 rand_gen(rd());
@@ -75,12 +76,12 @@ int main(int argc, char * argv[]){
       horniness = horninessF(rand_gen);
       movementInc = rabbitMove(rand_gen);
     } while (thirstyT < 0 || energyT < 0 || hornyT < 0 || horniness < 0 || movementInc < 1);
-    animals.push_back(new Rabbit(board.getFreeTile(animals),thirstyT,energyT,hornyT,horniness,movementInc));
+    animals.push_back(new Rabbit(board.getFreeTile(animals),thirstyT,thirstyCritT,energyT,energyCritT,hornyT,horniness,movementInc));
   }
 
   // Foxes!
   std::normal_distribution<float> thresholdsFox(0.6,0.1);
-  std::normal_distribution<float> horninessFox(0.04,0.01);
+  std::normal_distribution<float> horninessFox(0.005,0.002);
   std::normal_distribution<float> foxMove(6.,0.5);
 
   int nFoxes = 3;
