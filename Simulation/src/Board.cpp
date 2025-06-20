@@ -9,6 +9,7 @@ Board::Board(size_t size_x, size_t size_y):
   for (int i = 0; i < _size_x * _size_y; i++){
     landTiles.push_back(LandType::Ground);
     animalTiles.push_back(NULL);
+    foodTiles.push_back(0);
   }
 
   // Initialise random generators
@@ -229,4 +230,9 @@ void Board::updateBoardTimestep(){
   // remove the buffered animals
   _removeBuffered();
   // plausibly this is also where we could change where food if we decide to do that
+  for (auto & foodTile: foodTiles){
+    if (foodTile > 0){
+      foodTile -= 1;
+    }
+  }
 }
