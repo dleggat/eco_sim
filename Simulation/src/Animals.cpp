@@ -174,6 +174,20 @@ Rabbit::Rabbit(std::pair<int,int> location):
 };
 
 Rabbit::Rabbit(std::pair<int,int> location, float thirstThreshold, float energyThreshold, float hornyThreshold, float horniness, float movementInc):
+  Rabbit(location, thirstThreshold, 0.9, energyThreshold, 0.1, hornyThreshold, horniness, movementInc)
+{
+};
+
+Rabbit::Rabbit(
+	       std::pair<int,int> location,
+	       float thirstThreshold,
+	       float thirstCritThreshold,
+	       float energyThreshold,
+	       float energyCritThreshold,
+	       float hornyThreshold,
+	       float horniness,
+	       float movementInc
+	       ):
   Animal(location)
   //  _location(location), _movementIncrement(10), _energyDelta(0.02)
 {
@@ -192,7 +206,9 @@ Rabbit::Rabbit(std::pair<int,int> location, float thirstThreshold, float energyT
   }
   this->_horniness = horniness;
   this->_thirstThreshold = thirstThreshold;
+  this->_thirstCritThreshold = thirstCritThreshold;
   this->_energyThreshold = energyThreshold;
+  this->_energyCritThreshold = energyCritThreshold;
   this->_hornyThreshold = hornyThreshold;
   rabbitPopulation++;
 };
@@ -222,7 +238,12 @@ void Rabbit::runBehaviour(Board * board){
 }; //Rabbit::runBehaviour
 
 Animal::AnimalState Rabbit::defineState(Board board){
-  // First thing is to worry about predators
+  
+  // Rabbits hide too long if they only care about the predator
+  // Adding a critical low threshold for hunger and thirst
+  if (_thirst > this->_thirstCritThreshold) return AnimalState::Thirsty;
+  if (_energy < this->_energyCritThreshold) return AnimalState::Hungry;
+  // Next thing is to worry about predators
   Animal * closestFox = findClosestAnimal(board, "fox");
   if (closestFox) return AnimalState::Scared;
   // For now, let's just return idle
@@ -324,7 +345,7 @@ Fox::Fox(std::pair<int,int> location, float thirstThreshold, float energyThresho
   this->_animal_print = "\\/";
   this->_movementIncrement = movementInc;
   this->_forbiddenLand = {LandType::Water,LandType::Bush};
-  this->_sightRange = 7;
+  this->_sightRange = 15;
   this->_animalName = "fox";
   for (int i = -_sightRange; i < _sightRange + 1; i++){
     for (int j = -_sightRange; j < _sightRange + 1; j++){

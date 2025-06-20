@@ -58,7 +58,9 @@ protected:
   //Properties that we could potentially evolve
   int _sightRange;
   float _thirstThreshold;
+  float _thirstCritThreshold;
   float _energyThreshold;
+  float _energyCritThreshold;
   float _hornyThreshold;
   // For use with sight/identification
   std::vector<std::pair<int,int>> _sightGrid;
@@ -101,6 +103,7 @@ public:
   Rabbit();
   Rabbit(std::pair<int,int> startLocation);
   Rabbit(std::pair<int,int> location, float thirstThreshold, float energyThreshold, float hornyThreshold, float horniness, float movementInc);
+  Rabbit(std::pair<int,int> location, float thirstThreshold, float thirstCritThreshold, float energyThreshold, float energyCritThreshold, float hornyThreshold, float horniness, float movementInc);
 
   ~Rabbit() {rabbitPopulation--;};
   static inline int rabbitPopulation = 0;
