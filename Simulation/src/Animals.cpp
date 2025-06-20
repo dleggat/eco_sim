@@ -7,7 +7,7 @@ Animal::Animal():
 };
 
 Animal::Animal(std::pair<int,int> location):
-  _location(location), _energyDelta(0.02), _thirstDelta(0.004), _energy(1.0), _thirst(0.0), _sightRange(3), _state(AnimalState::Idle), _horn(0.), _babyEnergy(0.4), _internalCounter(0), _smallEnergyDelta(0.004), _uniqueId(Animal::animalID++)
+  _location(location), _energyDelta(0.002), _thirstDelta(0.001), _energy(1.0), _thirst(0.0), _sightRange(3), _state(AnimalState::Idle), _horn(0.), _babyEnergy(0.4), _internalCounter(0), _smallEnergyDelta(0.0005), _uniqueId(Animal::animalID++), _isHidden(false)
 {
 };
 
@@ -24,7 +24,7 @@ void Animal::updateTimestep(Board * board){
   // Remove animal from board whilst we do its behaviour
   board->removeAnimalFrom(getLocation());
 
-  _state = defineState();
+  _state = defineState(*board);
 
   // And run animal specific behaviour based on it
   runBehaviour(board);
@@ -78,7 +78,7 @@ void Animal::moveAnimal(std::pair<int,int> newLocation){
   _energy -= _energyDelta;
 }; //Animal::moveToLocation
 
-std::pair<int,int> Animal::searchFor(Board board, LandType searchFor){
+std::pair<int,int> Animal::searchFor(Board board, LandType searchFor, bool disallowOccupied){
   // This will find just the closest land tile of type (within the animals search diameter?)
   // This *can* be overloaded by derived classes if we want animals to sense differently
   float closestRange = 10000000.;
@@ -88,6 +88,7 @@ std::pair<int,int> Animal::searchFor(Board board, LandType searchFor){
     tempLoc = std::pair<int,int>(_location.first+sightSpot.first, _location.second+sightSpot.second);
     if (!board._coordInBounds(tempLoc)) continue;
     if (board.getTileTypeAt(tempLoc.first, tempLoc.second) != searchFor) continue;
+    if (disallowOccupied && board.getAnimalAt(tempLoc)) continue;
     float range = utils::distanceBetween(_location,tempLoc);
     if (range < closestRange){
       closestLocation = tempLoc;
@@ -198,6 +199,9 @@ Rabbit::Rabbit(std::pair<int,int> location, float thirstThreshold, float energyT
 
 void Rabbit::runBehaviour(Board * board){
   switch (_state){
+  case AnimalState::Scared:
+    this->_scaredBehaviour(*board);
+    break;
   case AnimalState::Idle:
     this->_idleBehaviour(*board);
     break;
@@ -213,9 +217,14 @@ void Rabbit::runBehaviour(Board * board){
   default:
     break;
   }
+  // Check if the rabbit is hidden
+  this->_isHidden = (board->getTileTypeAt(_location) == LandType::Bush);
 }; //Rabbit::runBehaviour
 
-Animal::AnimalState Rabbit::defineState(){
+Animal::AnimalState Rabbit::defineState(Board board){
+  // First thing is to worry about predators
+  Animal * closestFox = findClosestAnimal(board, "fox");
+  if (closestFox) return AnimalState::Scared;
   // For now, let's just return idle
   if (_thirst > this->_thirstThreshold) return AnimalState::Thirsty;
   if (_energy < this->_energyThreshold) return AnimalState::Hungry;
@@ -225,6 +234,21 @@ Animal::AnimalState Rabbit::defineState(){
   return AnimalState::Idle;
 
 }; //Rabbit::_defineState
+
+void Rabbit::_scaredBehaviour(Board board){
+  std::pair<int,int> nearestShelter = searchFor(board, LandType::Bush);
+  std::pair<int,int> moveLocation;
+  if (!(nearestShelter.first < 0)){
+    moveLocation = board.plotMoveTowards(_location,nearestShelter,this->_forbiddenLand);
+  }
+  else {
+    Animal * closestFox = findClosestAnimal(board, "fox");
+    // Adding final argument makes movetowards actually move away from
+    if (!closestFox) std::cout << "What?" << std::endl;
+    moveLocation = board.plotMoveTowards(_location,closestFox->getLocation(),this->_forbiddenLand,true);
+  }
+  moveAnimal(moveLocation);
+} // Rabbit::_scaredBehaviour()
 
 void Rabbit::_hungryBehaviour(Board board){
   std::pair<int,int> nearestFood = searchFor(board, LandType::Food);
@@ -300,7 +324,7 @@ Fox::Fox(std::pair<int,int> location, float thirstThreshold, float energyThresho
   this->_animal_print = "\\/";
   this->_movementIncrement = movementInc;
   this->_forbiddenLand = {LandType::Water,LandType::Bush};
-  this->_sightRange = 4;
+  this->_sightRange = 7;
   this->_animalName = "fox";
   for (int i = -_sightRange; i < _sightRange + 1; i++){
     for (int j = -_sightRange; j < _sightRange + 1; j++){
@@ -318,8 +342,7 @@ Fox::Fox(std::pair<int,int> location, float thirstThreshold, float energyThresho
   foxPopulation++;
 };
 
-Animal::AnimalState Fox::defineState(){
-  // For now, let's just return idle
+Animal::AnimalState Fox::defineState(Board board){
   if (_energy < this->_energyThreshold) return AnimalState::Hungry;
   if (_thirst > this->_thirstThreshold) return AnimalState::Thirsty;
   // If we aren't hungry or thirsty, the rabbit starts getting horny
@@ -349,8 +372,8 @@ void Fox::runBehaviour(Board * board){
 }; //Rabbit::runBehaviour
 
 void Fox::_hungryBehaviour(Board * board){
-
-  Animal* closestRabbit = findClosestAnimal(*board, "rabbit");
+  auto hiddenLambda = [](Animal* animal){ return !animal->isHidden(); };
+  Animal* closestRabbit = findClosestAnimal(*board, "rabbit", &hiddenLambda);
   if (!closestRabbit){
     moveOneRandom(*board, this->_forbiddenLand);
   }
