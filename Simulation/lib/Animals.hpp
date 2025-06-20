@@ -24,6 +24,7 @@ public:
   std::string printAnimal() { return _animal_print; };
   void updateTimestep(Board * board);
   bool isHorny() {return this->_state == AnimalState::Horny;};
+  bool isHidden(){return this->_isHidden;};
   int getID() {return _uniqueId;};
   std::map<std::string,float> pollGenes();
 
@@ -33,7 +34,8 @@ public:
     Idle,
     Hungry,
     Thirsty,
-    Horny
+    Horny,
+    Scared
   };
   
 protected:
@@ -43,6 +45,7 @@ protected:
   float _horn;
   // Animal state
   AnimalState _state;
+  bool _isHidden;
   // The amount of time ticks between movements
   float _movementIncrement;
   int _internalCounter;
@@ -66,7 +69,7 @@ protected:
   std::pair<int, int> _location;
   // Land the animal cannot move onto
   std::vector<LandType> _forbiddenLand;
-  virtual AnimalState defineState() = 0;
+  virtual AnimalState defineState(Board board) = 0;
   virtual void runBehaviour(Board * board) = 0;
 
   // Behaviour methods. We will define default ones that can be overridden by inheretted classes
@@ -79,7 +82,7 @@ protected:
   void moveAnimal(std::pair<int,int> newLocation);
 
   // Search methods
-  std::pair<int,int> searchFor(Board board, LandType search);
+  std::pair<int,int> searchFor(Board board, LandType search, bool disallowOccupied = false);
   template <typename F = bool(Animal*)>
   Animal* findClosestAnimal(Board board, std::string animalType,  F* validityFunc = 0);
   template <typename F>
@@ -102,11 +105,12 @@ public:
   ~Rabbit() {rabbitPopulation--;};
   static inline int rabbitPopulation = 0;
 private:
-  AnimalState defineState();
+  AnimalState defineState(Board board);
   void runBehaviour(Board * board);
   // Different behaviours
   void _hungryBehaviour(Board board);
   void _hornyBehaviour(Board * board);
+  void _scaredBehaviour(Board board);
 };
 
 class Fox: public Animal{
@@ -118,7 +122,7 @@ public:
   ~Fox() {foxPopulation--;};
   static inline int foxPopulation = 0;
 private:
-  AnimalState defineState();
+  AnimalState defineState(Board board);
   void runBehaviour(Board * board);
   //behaviours
   void _hungryBehaviour(Board * board);

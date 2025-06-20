@@ -190,7 +190,7 @@ std::pair<int, int> Board::getFreeTile(std::vector<Animal*> animals){
   return location;
 }; //getFreeTile                                                                 
 
-std::pair<int,int> Board::plotMoveTowards(std::pair<int,int> start, std::pair<int,int> end, std::vector<LandType> forbidden){
+std::pair<int,int> Board::plotMoveTowards(std::pair<int,int> start, std::pair<int,int> end, std::vector<LandType> forbidden, bool moveAway){
   if (start == end) return start;
   std::vector<std::pair<int,int>> legalMoves = getLegalMoves(start,forbidden);
   std::pair<int,int> vectorDirection = std::pair<int,int>(end.first - start.first, end.second - start.second);
@@ -198,10 +198,11 @@ std::pair<int,int> Board::plotMoveTowards(std::pair<int,int> start, std::pair<in
   if (legalMoves.size() == 0) return start;
   std::pair<int,int> bestDirection;
   float minimumAngle = 100.;
+  if (moveAway) minimumAngle = 0.;
   for (auto & move: legalMoves){
     std::pair<int,int> moveVector(move.first - start.first, move.second - start.second);
     float angle = utils::angleCalc(vectorDirection,moveVector);
-    if (angle < minimumAngle){
+    if (angle < minimumAngle != moveAway){
       minimumAngle = angle;
       bestDirection = move;
     }

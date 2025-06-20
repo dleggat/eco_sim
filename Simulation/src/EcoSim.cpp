@@ -30,7 +30,7 @@ void EcoSim::runSimulation(int timeSteps){
     if (i % _pollTimesteps == 0){
       _pollAnimalState(_getAnimals());
     }
-    std::this_thread::sleep_for(10ms);
+    std::this_thread::sleep_for(8ms);
   }
 }; //runSimulation
 

@@ -36,7 +36,7 @@ public:
   std::pair<int, int> getRandomAdjacentTile(std::pair<int,int> location,std::vector<LandType> forbidden);
   std::pair<int, int> getFreeTile(std::vector<Animal*> animals);
   // Get moves towards things
-  std::pair<int,int> plotMoveTowards(std::pair<int,int> start, std::pair<int,int> end, std::vector<LandType> forbidden);
+  std::pair<int,int> plotMoveTowards(std::pair<int,int> start, std::pair<int,int> end, std::vector<LandType> forbidden, bool moveAway = false);
   int sizeX() {return _size_x;};
   int sizeY() {return _size_y;};
   bool adjacentContains(std::pair<int,int> location, std::vector<LandType> types);
