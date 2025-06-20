@@ -38,11 +38,15 @@ int main(int argc, char * argv[]){
   char * nFoxesCLI = getCmdOption(argv, argv+argc, "-f");
   
   // Make the board and set up some land types
-  Board board = Board(25,25);
-  board.addPond(14);
-  board.populateLandTypes(LandType::Water, 5);
-  board.populateLandTypes(LandType::Food, 12);
-  board.populateLandTypes(LandType::Bush, 15);
+  Board board = Board(60,60);
+  board.addPond(30);
+  board.addPond(30);
+  board.addPond(20);
+  board.addPond(30);
+  board.addPond(50);
+  board.populateLandTypes(LandType::Water, 2);
+  board.populateLandTypes(LandType::Food, 50);
+  board.populateLandTypes(LandType::Bush, 10);
   //  board.printBoard();
   
   EcoSim simulation(board);
@@ -57,7 +61,7 @@ int main(int argc, char * argv[]){
 
   std::normal_distribution<float> thresholds(0.5,0.1);
   std::normal_distribution<float> horninessF(0.06,0.01);
-  std::normal_distribution<float> rabbitMove(10.,0.5);  
+  std::normal_distribution<float> rabbitMove(15.,0.5);  
   
   // Just a couple of rabbits for now
   int nRabbits = 6;
@@ -77,7 +81,7 @@ int main(int argc, char * argv[]){
   // Foxes!
   std::normal_distribution<float> thresholdsFox(0.6,0.1);
   std::normal_distribution<float> horninessFox(0.04,0.01);
-  std::normal_distribution<float> foxMove(8.,0.5);
+  std::normal_distribution<float> foxMove(6.,0.5);
 
   int nFoxes = 3;
   if (nFoxesCLI) nFoxes = atoi(nFoxesCLI);
