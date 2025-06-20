@@ -194,7 +194,7 @@ Rabbit::Rabbit(
   this->_animal_print = "db";
   this->_movementIncrement = movementInc;
   this->_forbiddenLand = {LandType::Water};
-  this->_sightRange = 6;
+  this->_sightRange = 8;
   this->_animalName = "rabbit";
   for (int i = -_sightRange; i < _sightRange + 1; i++){
     for (int j = -_sightRange; j < _sightRange + 1; j++){
@@ -225,7 +225,7 @@ void Rabbit::runBehaviour(Board * board){
     this->_thirstyBehaviour(*board);
     break;
   case AnimalState::Hungry:
-    _hungryBehaviour(*board);
+    _hungryBehaviour(board);
     break;
   case AnimalState::Horny:
     _hornyBehaviour(board);
@@ -241,8 +241,8 @@ Animal::AnimalState Rabbit::defineState(Board board){
   
   // Rabbits hide too long if they only care about the predator
   // Adding a critical low threshold for hunger and thirst
-  if (_thirst > this->_thirstCritThreshold) return AnimalState::Thirsty;
   if (_energy < this->_energyCritThreshold) return AnimalState::Hungry;
+  if (_thirst > this->_thirstCritThreshold) return AnimalState::Thirsty;
   // Next thing is to worry about predators
   Animal * closestFox = findClosestAnimal(board, "fox");
   if (closestFox) return AnimalState::Scared;
@@ -271,17 +271,18 @@ void Rabbit::_scaredBehaviour(Board board){
   moveAnimal(moveLocation);
 } // Rabbit::_scaredBehaviour()
 
-void Rabbit::_hungryBehaviour(Board board){
-  std::pair<int,int> nearestFood = searchFor(board, LandType::Food);
+void Rabbit::_hungryBehaviour(Board * board){
+  std::pair<int,int> nearestFood = searchFor(* board, LandType::Food);
   if (nearestFood.first < 0){
-    moveOneRandom(board,this->_forbiddenLand);
+    moveOneRandom(*board,this->_forbiddenLand);
   }
   else{
-    std::pair<int,int> moveLocation = board.plotMoveTowards(_location,nearestFood,this->_forbiddenLand);
+    std::pair<int,int> moveLocation = board->plotMoveTowards(_location,nearestFood,this->_forbiddenLand);
     moveAnimal(moveLocation);
   }
-  if (board.adjacentContains(_location,{LandType::Food})){
+  if (board->adjacentContains(_location,{LandType::Food})){
     this->_energy = 1.;
+    board->eatFoodAt(nearestFood);
   }
 };
 

@@ -111,7 +111,7 @@ private:
   AnimalState defineState(Board board);
   void runBehaviour(Board * board);
   // Different behaviours
-  void _hungryBehaviour(Board board);
+  void _hungryBehaviour(Board * board);
   void _hornyBehaviour(Board * board);
   void _scaredBehaviour(Board board);
 };

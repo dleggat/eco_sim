@@ -24,8 +24,8 @@ public:
   //  ~Board() { free(landTiles); };
 
   void updateBoardTimestep();
-  LandType getTileTypeAt(std::size_t x, std::size_t y) { return landTiles[x * _size_x + y]; };
-  LandType getTileTypeAt(std::pair<int,int> location) { return landTiles[location.first * _size_x + location.second]; };
+  LandType getTileTypeAt(std::size_t x, std::size_t y) { return foodTiles[x * _size_x + y] ? LandType::Ground : landTiles[x * _size_x + y]; };
+  LandType getTileTypeAt(std::pair<int,int> location) { return foodTiles[location.first * _size_x + location.second] ? LandType::Ground : landTiles[location.first * _size_x + location.second]; };
   void printBoard();
   void populateLandTypes(LandType type, int nTiles);
   void addPond(int nTiles);
@@ -48,10 +48,13 @@ public:
   bool isAnimalRemovalBuffered(int id){return (std::find(_idsToDelete.begin(),_idsToDelete.end(),id) != _idsToDelete.end());};
   void removeFromMap(int id);
   Animal* getAnimalAt(std::pair<int,int> location) { return animalTiles[location.first * _size_x + location.second]; };
+  // Manipulate food tiles
+  void eatFoodAt(std::pair<int,int> location) { foodTiles[location.first * _size_x + location.second] = 1000; };
   std::vector<Animal*> getAnimals();
   std::map<int,Animal*>* getAnimalMap(){return &_animalMap;};
 private:
   std::vector<LandType> landTiles;
+  std::vector<size_t> foodTiles;
   std::vector<Animal*> animalTiles;
   int _size_x, _size_y;
   std::mt19937 rand_gen;
