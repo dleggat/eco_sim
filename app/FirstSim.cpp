@@ -21,6 +21,10 @@ void printHelp(){
   std::cout << " -t: number of timesteps to run the simulation for " << std::endl;
   std::cout << " -r: number of rabbits in initial conditions" << std::endl;
   std::cout << " -f: number of foxes in initial conditions" << std::endl;
+  std::cout << " -s: number of timesteps for food respawn" << std::endl;
+  std::cout << " -w: number of water tiles to spawn on map, not including ponds" << std::endl;
+  std::cout << " -e: number of food tiles to spawn on map" << std::endl;
+  std::cout << " -b: number of bush tiles to spawn on map" << std::endl;
 }
 
 int main(int argc, char * argv[]){
@@ -36,6 +40,10 @@ int main(int argc, char * argv[]){
   char * timestepsCLI = getCmdOption(argv, argv+argc, "-t");
   char * nRabbitsCLI = getCmdOption(argv, argv+argc, "-r");
   char * nFoxesCLI = getCmdOption(argv, argv+argc, "-f");
+  char * foodRespawn = getCmdOption(argv, argv+argc, "-s");
+  char * waterTiles = getCmdOption(argv, argv+argc, "-w");
+  char * foodTiles = getCmdOption(argv, argv+argc, "-e");
+  char * bushTiles = getCmdOption(argv, argv+argc, "-b");
   
   // Make the board and set up some land types
   Board board = Board(70,70);
@@ -45,9 +53,22 @@ int main(int argc, char * argv[]){
   board.addPond(30);
   board.addPond(50);
   board.addPond(40);
-  board.populateLandTypes(LandType::Water, 2);
-  board.populateLandTypes(LandType::Food, 60);
-  board.populateLandTypes(LandType::Bush, 40);
+
+  // Read CLI
+  int nFood = 60;
+  if (foodTiles) nFood = atoi(foodTiles);
+  int nWater = 2;
+  if (waterTiles) nWater = atoi(waterTiles);
+  int nBush = 2;
+  if (bushTiles) nBush = atoi(bushTiles);
+  int foodRespawnTime = 1000;
+  if (foodRespawn) foodRespawnTime = atoi(foodRespawn);
+
+  board.setFoodRespawn(foodRespawnTime);
+
+  board.populateLandTypes(LandType::Water, nWater);
+  board.populateLandTypes(LandType::Food, nFood);
+  board.populateLandTypes(LandType::Bush, nBush);
   //  board.printBoard();
   
   EcoSim simulation(board);
