@@ -49,7 +49,8 @@ public:
   void removeFromMap(int id);
   Animal* getAnimalAt(std::pair<int,int> location) { return animalTiles[location.first * _size_x + location.second]; };
   // Manipulate food tiles
-  void eatFoodAt(std::pair<int,int> location) { foodTiles[location.first * _size_x + location.second] = 1000; };
+  void eatFoodAt(std::pair<int,int> location) { foodTiles[location.first * _size_x + location.second] = _foodRespawn; };
+  void setFoodRespawn(int newRespawn) { _foodRespawn = newRespawn; };
   std::vector<Animal*> getAnimals();
   std::map<int,Animal*>* getAnimalMap(){return &_animalMap;};
 private:
@@ -70,4 +71,7 @@ private:
   // To delete animals we have to make a temp store of ids to be deleted
   std::vector<int> _idsToDelete;
   void _removeBuffered();
+
+  // comparison numbers
+  int _foodRespawn = 1000;
 };
